@@ -1,6 +1,7 @@
 package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.domain.Resource;
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.service.dto.ResourceDTO;
 import com.mycompany.myapp.service.mapper.ResourceMapper;
@@ -89,6 +90,16 @@ public class ResourceService {
     }
 
     /**
+     * Get all the resources with eager load of many-to-many relationships.
+     *
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    public Page<ResourceDTO> findAllWithEagerRelationships(Pageable pageable) {
+        return resourceRepository.findAll(pageable).map(resourceMapper::toDto);
+    }
+
+    /**
      * Get one resource by id.
      *
      * @param id the id of the entity.
@@ -108,5 +119,79 @@ public class ResourceService {
     public void delete(Long id) {
         LOG.debug("Request to delete Resource : {}", id);
         resourceRepository.deleteById(id);
+    }
+
+    /**
+     * Search resources by title.
+     *
+     * @param title the title to search for.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> findByTitleContaining(String title, Pageable pageable) {
+        LOG.debug("Request to search Resources by title : {}", title);
+        return resourceRepository.findByTitleContainingIgnoreCase(title, pageable).map(resourceMapper::toDto);
+    }
+
+    /**
+     * Search resources by author.
+     *
+     * @param author the author to search for.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> findByAuthorContaining(String author, Pageable pageable) {
+        LOG.debug("Request to search Resources by author : {}", author);
+        return resourceRepository.findByAuthorContainingIgnoreCase(author, pageable).map(resourceMapper::toDto);
+    }
+
+    /**
+     * Search resources by keywords.
+     *
+     * @param keywords the keywords to search for.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> findByKeywordsContaining(String keywords, Pageable pageable) {
+        LOG.debug("Request to search Resources by keywords : {}", keywords);
+        return resourceRepository.findByKeywordsContainingIgnoreCase(keywords, pageable).map(resourceMapper::toDto);
+    }
+
+    /**
+     * Search resources by resource type.
+     *
+     * @param resourceType the resource type to search for.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> findByResourceType(ResourceType resourceType, Pageable pageable) {
+        LOG.debug("Request to search Resources by resource type : {}", resourceType);
+        return resourceRepository.findByResourceType(resourceType, pageable).map(resourceMapper::toDto);
+    }
+
+    /**
+     * Advanced search combining multiple criteria.
+     *
+     * @param title the title to search for.
+     * @param author the author to search for.
+     * @param keywords the keywords to search for.
+     * @param resourceType the resource type to search for.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> searchByCriteria(String title, String author, String keywords, ResourceType resourceType, Pageable pageable) {
+        LOG.debug(
+            "Request to search Resources by criteria - title: {}, author: {}, keywords: {}, type: {}",
+            title,
+            author,
+            keywords,
+            resourceType
+        );
+        return resourceRepository.findByCriteria(title, author, keywords, resourceType, pageable).map(resourceMapper::toDto);
     }
 }

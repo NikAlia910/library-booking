@@ -1,5 +1,6 @@
 package com.mycompany.myapp.web.rest;
 
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.service.ResourceService;
 import com.mycompany.myapp.service.dto.ResourceDTO;
@@ -139,12 +140,123 @@ public class ResourceResource {
      * {@code GET  /resources} : get all the resources.
      *
      * @param pageable the pagination information.
+     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
      */
     @GetMapping("")
-    public ResponseEntity<List<ResourceDTO>> getAllResources(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
+    public ResponseEntity<List<ResourceDTO>> getAllResources(
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable,
+        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
+    ) {
         LOG.debug("REST request to get a page of Resources");
-        Page<ResourceDTO> page = resourceService.findAll(pageable);
+        Page<ResourceDTO> page;
+        if (eagerload) {
+            page = resourceService.findAllWithEagerRelationships(pageable);
+        } else {
+            page = resourceService.findAll(pageable);
+        }
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /resources/search/title} : search resources by title.
+     *
+     * @param title the title to search for.
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
+     */
+    @GetMapping("/search/title")
+    public ResponseEntity<List<ResourceDTO>> searchResourcesByTitle(
+        @RequestParam String title,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to search Resources by title: {}", title);
+        Page<ResourceDTO> page = resourceService.findByTitleContaining(title, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /resources/search/author} : search resources by author.
+     *
+     * @param author the author to search for.
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
+     */
+    @GetMapping("/search/author")
+    public ResponseEntity<List<ResourceDTO>> searchResourcesByAuthor(
+        @RequestParam String author,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to search Resources by author: {}", author);
+        Page<ResourceDTO> page = resourceService.findByAuthorContaining(author, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /resources/search/keywords} : search resources by keywords.
+     *
+     * @param keywords the keywords to search for.
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
+     */
+    @GetMapping("/search/keywords")
+    public ResponseEntity<List<ResourceDTO>> searchResourcesByKeywords(
+        @RequestParam String keywords,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to search Resources by keywords: {}", keywords);
+        Page<ResourceDTO> page = resourceService.findByKeywordsContaining(keywords, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /resources/search/type} : search resources by resource type.
+     *
+     * @param resourceType the resource type to search for.
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
+     */
+    @GetMapping("/search/type")
+    public ResponseEntity<List<ResourceDTO>> searchResourcesByType(
+        @RequestParam ResourceType resourceType,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug("REST request to search Resources by type: {}", resourceType);
+        Page<ResourceDTO> page = resourceService.findByResourceType(resourceType, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /resources/search} : advanced search with multiple criteria.
+     *
+     * @param title the title to search for (optional).
+     * @param author the author to search for (optional).
+     * @param keywords the keywords to search for (optional).
+     * @param resourceType the resource type to search for (optional).
+     * @param pageable the pagination information.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<ResourceDTO>> advancedSearchResources(
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String author,
+        @RequestParam(required = false) String keywords,
+        @RequestParam(required = false) ResourceType resourceType,
+        @org.springdoc.core.annotations.ParameterObject Pageable pageable
+    ) {
+        LOG.debug(
+            "REST request to search Resources with criteria - title: {}, author: {}, keywords: {}, type: {}",
+            title,
+            author,
+            keywords,
+            resourceType
+        );
+        Page<ResourceDTO> page = resourceService.searchByCriteria(title, author, keywords, resourceType, pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }

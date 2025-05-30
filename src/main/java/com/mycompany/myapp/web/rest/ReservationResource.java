@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -156,6 +157,58 @@ public class ReservationResource {
         }
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+     * {@code GET  /reservations/resource/{resourceId}} : get reservations by resource.
+     *
+     * @param resourceId the resource ID.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of reservations in body.
+     */
+    @GetMapping("/resource/{resourceId}")
+    public ResponseEntity<List<ReservationDTO>> getReservationsByResource(@PathVariable("resourceId") Long resourceId) {
+        LOG.debug("REST request to get Reservations by resource ID: {}", resourceId);
+        List<ReservationDTO> reservations = reservationService.findByResourceId(resourceId);
+        return ResponseEntity.ok().body(reservations);
+    }
+
+    /**
+     * {@code GET  /reservations/user/{userId}/active} : get active reservations for a user.
+     *
+     * @param userId the user ID.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of active reservations in body.
+     */
+    @GetMapping("/user/{userId}/active")
+    public ResponseEntity<List<ReservationDTO>> getActiveReservationsByUser(@PathVariable("userId") Long userId) {
+        LOG.debug("REST request to get active Reservations by user ID: {}", userId);
+        List<ReservationDTO> reservations = reservationService.findActiveReservationsByUserId(userId);
+        return ResponseEntity.ok().body(reservations);
+    }
+
+    /**
+     * {@code GET  /reservations/availability/{resourceId}} : check resource availability.
+     *
+     * @param resourceId the resource ID.
+     * @param startTime the start time (ISO format).
+     * @param endTime the end time (ISO format).
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and availability status in body.
+     */
+    @GetMapping("/availability/{resourceId}")
+    public ResponseEntity<Boolean> checkResourceAvailability(
+        @PathVariable("resourceId") Long resourceId,
+        @RequestParam String startTime,
+        @RequestParam String endTime
+    ) {
+        LOG.debug("REST request to check availability for resource {} from {} to {}", resourceId, startTime, endTime);
+        try {
+            Instant start = Instant.parse(startTime);
+            Instant end = Instant.parse(endTime);
+            boolean isAvailable = reservationService.isResourceAvailable(resourceId, start, end);
+            return ResponseEntity.ok().body(isAvailable);
+        } catch (Exception e) {
+            LOG.error("Error parsing time parameters", e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     /**

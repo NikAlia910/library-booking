@@ -1,8 +1,6 @@
 import React from 'react';
-import { Route } from 'react-router';
-
+import { Route } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
-
 import Loadable from 'react-loadable';
 
 import Login from 'app/modules/login/login';
@@ -21,15 +19,32 @@ import { sendActivity } from 'app/config/websocket-middleware';
 
 const loading = <div>loading ...</div>;
 
+// Lazy load library components
+const LibraryDashboard = Loadable({
+  loader: () => import('app/modules/library/library-dashboard'),
+  loading: () => loading,
+});
+
+const AvailabilityCalendar = Loadable({
+  loader: () => import('app/modules/library/availability-calendar'),
+  loading: () => loading,
+});
+
+const ReservationForm = Loadable({
+  loader: () => import('app/modules/library/reservation-form'),
+  loading: () => loading,
+});
+
 const Account = Loadable({
-  loader: () => import(/* webpackChunkName: "account" */ 'app/modules/account'),
+  loader: () => import('app/modules/account'),
   loading: () => loading,
 });
 
 const Admin = Loadable({
-  loader: () => import(/* webpackChunkName: "administration" */ 'app/modules/administration'),
+  loader: () => import('app/modules/administration'),
   loading: () => loading,
 });
+
 const AppRoutes = () => {
   const pageLocation = useLocation();
   React.useEffect(() => {
@@ -42,20 +57,20 @@ const AppRoutes = () => {
         <Route path="login" element={<Login />} />
         <Route path="logout" element={<Logout />} />
         <Route path="account">
-          <Route
-            path="*"
-            element={
-              <PrivateRoute hasAnyAuthorities={[AUTHORITIES.ADMIN, AUTHORITIES.USER]}>
-                <Account />
-              </PrivateRoute>
-            }
-          />
           <Route path="register" element={<Register />} />
           <Route path="activate" element={<Activate />} />
           <Route path="reset">
             <Route path="request" element={<PasswordResetInit />} />
             <Route path="finish" element={<PasswordResetFinish />} />
           </Route>
+          <Route
+            path="*"
+            element={
+              <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
+                <Account />
+              </PrivateRoute>
+            }
+          />
         </Route>
         <Route
           path="admin/*"
@@ -65,8 +80,41 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+        {/* Library Booking System Routes */}
         <Route
-          path="*"
+          path="library/dashboard"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
+              <LibraryDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="library/calendar"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
+              <AvailabilityCalendar />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="reservation/new"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
+              <ReservationForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="resource/:resourceId/reserve"
+          element={
+            <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
+              <ReservationForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/*"
           element={
             <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
               <EntitiesRoutes />

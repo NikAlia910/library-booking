@@ -1,14 +1,24 @@
 import './home.scss';
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
-import { Alert, Col, Row } from 'reactstrap';
+import { Alert, Col, Row, Button, Card, CardBody, CardTitle } from 'reactstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBook, faCalendarAlt, faUsers, faCog } from '@fortawesome/free-solid-svg-icons';
 
 import { useAppSelector } from 'app/config/store';
 
 export const Home = () => {
   const account = useAppSelector(state => state.authentication.account);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect authenticated users to library dashboard
+    if (account?.login) {
+      navigate('/library/dashboard');
+    }
+  }, [account, navigate]);
 
   return (
     <Row>
@@ -16,70 +26,82 @@ export const Home = () => {
         <span className="hipster rounded" />
       </Col>
       <Col md="9">
-        <h1 className="display-4">Welcome, Java Hipster!</h1>
-        <p className="lead">This is your homepage</p>
+        <h1 className="display-4">Welcome to Library Booking System!</h1>
+        <p className="lead">Your comprehensive solution for managing library resources and reservations</p>
         {account?.login ? (
           <div>
-            <Alert color="success">You are logged in as user &quot;{account.login}&quot;.</Alert>
+            <Alert color="success">You are logged in as user &quot;{account.login}&quot;. Redirecting to dashboard...</Alert>
           </div>
         ) : (
           <div>
-            <Alert color="warning">
-              If you want to
+            <Alert color="info">
+              Welcome to our Library Booking System! Please
               <span>&nbsp;</span>
               <Link to="/login" className="alert-link">
                 sign in
               </Link>
-              , you can try the default accounts:
-              <br />- Administrator (login=&quot;admin&quot; and password=&quot;admin&quot;) <br />- User (login=&quot;user&quot; and
-              password=&quot;user&quot;).
+              &nbsp;to access the library resources.
+              <br />
+              Demo accounts: Admin (admin/admin) or User (user/user)
             </Alert>
 
-            <Alert color="warning">
-              You don&apos;t have an account yet?&nbsp;
+            <Alert color="primary">
+              New to our library?&nbsp;
               <Link to="/account/register" className="alert-link">
                 Register a new account
               </Link>
             </Alert>
+
+            {/* Feature Cards */}
+            <Row className="mt-4">
+              <Col md="6" className="mb-3">
+                <Card className="border-0 shadow-sm h-100">
+                  <CardBody className="text-center">
+                    <FontAwesomeIcon icon={faBook} size="2x" className="text-primary mb-3" />
+                    <CardTitle tag="h5">Resource Discovery</CardTitle>
+                    <p className="text-muted">Search and discover books, meeting rooms, and equipment with our advanced search features.</p>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col md="6" className="mb-3">
+                <Card className="border-0 shadow-sm h-100">
+                  <CardBody className="text-center">
+                    <FontAwesomeIcon icon={faCalendarAlt} size="2x" className="text-success mb-3" />
+                    <CardTitle tag="h5">Easy Booking</CardTitle>
+                    <p className="text-muted">
+                      Make reservations with our intuitive calendar interface and real-time availability checking.
+                    </p>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col md="6" className="mb-3">
+                <Card className="border-0 shadow-sm h-100">
+                  <CardBody className="text-center">
+                    <FontAwesomeIcon icon={faUsers} size="2x" className="text-warning mb-3" />
+                    <CardTitle tag="h5">User-Friendly</CardTitle>
+                    <p className="text-muted">Designed with accessibility and ease-of-use in mind for all library patrons.</p>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col md="6" className="mb-3">
+                <Card className="border-0 shadow-sm h-100">
+                  <CardBody className="text-center">
+                    <FontAwesomeIcon icon={faCog} size="2x" className="text-info mb-3" />
+                    <CardTitle tag="h5">Smart Rules</CardTitle>
+                    <p className="text-muted">Intelligent business rules ensure fair access and prevent conflicts in bookings.</p>
+                  </CardBody>
+                </Card>
+              </Col>
+            </Row>
+
+            <div className="text-center mt-4">
+              <Button color="primary" size="lg" tag={Link} to="/login">
+                <FontAwesomeIcon icon={faBook} className="me-2" />
+                Get Started
+              </Button>
+            </div>
           </div>
         )}
-        <p>If you have any question on JHipster:</p>
-
-        <ul>
-          <li>
-            <a href="https://www.jhipster.tech/" target="_blank" rel="noopener noreferrer">
-              JHipster homepage
-            </a>
-          </li>
-          <li>
-            <a href="https://stackoverflow.com/tags/jhipster/info" target="_blank" rel="noopener noreferrer">
-              JHipster on Stack Overflow
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/jhipster/generator-jhipster/issues?state=open" target="_blank" rel="noopener noreferrer">
-              JHipster bug tracker
-            </a>
-          </li>
-          <li>
-            <a href="https://gitter.im/jhipster/generator-jhipster" target="_blank" rel="noopener noreferrer">
-              JHipster public chat room
-            </a>
-          </li>
-          <li>
-            <a href="https://twitter.com/jhipster" target="_blank" rel="noopener noreferrer">
-              follow @jhipster on Twitter
-            </a>
-          </li>
-        </ul>
-
-        <p>
-          If you like JHipster, don&apos;t forget to give us a star on{' '}
-          <a href="https://github.com/jhipster/generator-jhipster" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-          !
-        </p>
       </Col>
     </Row>
   );
