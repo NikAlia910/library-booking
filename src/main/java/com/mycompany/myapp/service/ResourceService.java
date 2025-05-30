@@ -1,6 +1,7 @@
 package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.domain.Resource;
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.service.dto.ResourceDTO;
 import com.mycompany.myapp.service.mapper.ResourceMapper;
@@ -86,6 +87,28 @@ public class ResourceService {
     public Page<ResourceDTO> findAll(Pageable pageable) {
         LOG.debug("Request to get all Resources");
         return resourceRepository.findAll(pageable).map(resourceMapper::toDto);
+    }
+
+    /**
+     * Search for resources based on criteria.
+     *
+     * @param title the title to search for.
+     * @param author the author to search for.
+     * @param keywords the keywords to search for.
+     * @param resourceType the resource type to filter by.
+     * @param pageable the pagination information.
+     * @return the list of entities.
+     */
+    @Transactional(readOnly = true)
+    public Page<ResourceDTO> search(String title, String author, String keywords, ResourceType resourceType, Pageable pageable) {
+        LOG.debug(
+            "Request to search Resources with criteria: title={}, author={}, keywords={}, resourceType={}",
+            title,
+            author,
+            keywords,
+            resourceType
+        );
+        return resourceRepository.findBySearchCriteria(title, author, keywords, resourceType, pageable).map(resourceMapper::toDto);
     }
 
     /**

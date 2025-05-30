@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route } from 'react-router'; // eslint-disable-line
+import { Route } from 'react-router-dom';
 
 import ErrorBoundaryRoutes from 'app/shared/error/error-boundary-routes';
 

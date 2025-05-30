@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Table } from 'reactstrap';
+import { Button, Table, Card, CardBody } from 'reactstrap';
 import { JhiItemCount, JhiPagination, getPaginationState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
@@ -9,16 +9,18 @@ import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-u
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntities } from './resource.reducer';
+import ResourceSearch from './resource-search';
 
 export const Resource = () => {
   const dispatch = useAppDispatch();
-
   const pageLocation = useLocation();
   const navigate = useNavigate();
 
   const [paginationState, setPaginationState] = useState(
     overridePaginationStateWithQueryParams(getPaginationState(pageLocation, ITEMS_PER_PAGE, 'id'), pageLocation.search),
   );
+
+  const [searchParams, setSearchParams] = useState({});
 
   const resourceList = useAppSelector(state => state.resource.entities);
   const loading = useAppSelector(state => state.resource.loading);
@@ -30,6 +32,7 @@ export const Resource = () => {
         page: paginationState.activePage - 1,
         size: paginationState.itemsPerPage,
         sort: `${paginationState.sort},${paginationState.order}`,
+        ...searchParams,
       }),
     );
   };
@@ -44,7 +47,7 @@ export const Resource = () => {
 
   useEffect(() => {
     sortEntities();
-  }, [paginationState.activePage, paginationState.order, paginationState.sort]);
+  }, [paginationState.activePage, paginationState.order, paginationState.sort, searchParams]);
 
   useEffect(() => {
     const params = new URLSearchParams(pageLocation.search);
@@ -79,6 +82,14 @@ export const Resource = () => {
     sortEntities();
   };
 
+  const handleSearch = params => {
+    setSearchParams(params);
+    setPaginationState({
+      ...paginationState,
+      activePage: 1,
+    });
+  };
+
   const getSortIconByFieldName = (fieldName: string) => {
     const sortFieldName = paginationState.sort;
     const order = paginationState.order;
@@ -102,93 +113,96 @@ export const Resource = () => {
           </Link>
         </div>
       </h2>
-      <div className="table-responsive">
-        {resourceList && resourceList.length > 0 ? (
-          <Table responsive>
-            <thead>
-              <tr>
-                <th className="hand" onClick={sort('id')}>
-                  ID <FontAwesomeIcon icon={getSortIconByFieldName('id')} />
-                </th>
-                <th className="hand" onClick={sort('title')}>
-                  Title <FontAwesomeIcon icon={getSortIconByFieldName('title')} />
-                </th>
-                <th className="hand" onClick={sort('author')}>
-                  Author <FontAwesomeIcon icon={getSortIconByFieldName('author')} />
-                </th>
-                <th className="hand" onClick={sort('keywords')}>
-                  Keywords <FontAwesomeIcon icon={getSortIconByFieldName('keywords')} />
-                </th>
-                <th className="hand" onClick={sort('resourceType')}>
-                  Resource Type <FontAwesomeIcon icon={getSortIconByFieldName('resourceType')} />
-                </th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {resourceList.map((resource, i) => (
-                <tr key={`entity-${i}`} data-cy="entityTable">
-                  <td>
-                    <Button tag={Link} to={`/resource/${resource.id}`} color="link" size="sm">
-                      {resource.id}
-                    </Button>
-                  </td>
-                  <td>{resource.title}</td>
-                  <td>{resource.author}</td>
-                  <td>{resource.keywords}</td>
-                  <td>{resource.resourceType}</td>
-                  <td className="text-end">
-                    <div className="btn-group flex-btn-group-container">
-                      <Button tag={Link} to={`/resource/${resource.id}`} color="info" size="sm" data-cy="entityDetailsButton">
-                        <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline">View</span>
-                      </Button>
-                      <Button
-                        tag={Link}
-                        to={`/resource/${resource.id}/edit?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`}
-                        color="primary"
-                        size="sm"
-                        data-cy="entityEditButton"
-                      >
-                        <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline">Edit</span>
-                      </Button>
-                      <Button
-                        onClick={() =>
-                          (window.location.href = `/resource/${resource.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
-                        }
-                        color="danger"
-                        size="sm"
-                        data-cy="entityDeleteButton"
-                      >
-                        <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline">Delete</span>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
-        ) : (
-          !loading && <div className="alert alert-warning">No Resources found</div>
-        )}
-      </div>
-      {totalItems ? (
-        <div className={resourceList && resourceList.length > 0 ? '' : 'd-none'}>
-          <div className="justify-content-center d-flex">
-            <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} />
-          </div>
-          <div className="justify-content-center d-flex">
-            <JhiPagination
-              activePage={paginationState.activePage}
-              onSelect={handlePagination}
-              maxButtons={5}
-              itemsPerPage={paginationState.itemsPerPage}
-              totalItems={totalItems}
-            />
-          </div>
-        </div>
-      ) : (
-        ''
-      )}
+
+      <ResourceSearch onSearch={handleSearch} />
+
+      <Card className="mt-4">
+        <CardBody>
+          {resourceList && resourceList.length > 0 ? (
+            <div>
+              <Table responsive hover striped>
+                <thead>
+                  <tr>
+                    <th className="hand" onClick={sort('title')}>
+                      Title <FontAwesomeIcon icon={getSortIconByFieldName('title')} />
+                    </th>
+                    <th className="hand" onClick={sort('author')}>
+                      Author <FontAwesomeIcon icon={getSortIconByFieldName('author')} />
+                    </th>
+                    <th className="hand" onClick={sort('keywords')}>
+                      Keywords <FontAwesomeIcon icon={getSortIconByFieldName('keywords')} />
+                    </th>
+                    <th className="hand" onClick={sort('resourceType')}>
+                      Resource Type <FontAwesomeIcon icon={getSortIconByFieldName('resourceType')} />
+                    </th>
+                    <th className="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resourceList.map((resource, i) => (
+                    <tr key={`entity-${i}`} data-cy="entityTable">
+                      <td>
+                        <Link to={`/resource/${resource.id}`} className="text-primary">
+                          {resource.title}
+                        </Link>
+                      </td>
+                      <td>{resource.author}</td>
+                      <td>{resource.keywords}</td>
+                      <td>
+                        <span
+                          className={`badge bg-${resource.resourceType === 'BOOK' ? 'info' : resource.resourceType === 'MEETING_ROOM' ? 'warning' : 'success'}`}
+                        >
+                          {resource.resourceType}
+                        </span>
+                      </td>
+                      <td className="text-center">
+                        <div className="btn-group flex-btn-group-container">
+                          <Button tag={Link} to={`/resource/${resource.id}`} color="info" size="sm" data-cy="entityDetailsButton">
+                            <FontAwesomeIcon icon="eye" /> <span className="d-none d-md-inline">View</span>
+                          </Button>
+                          <Button tag={Link} to={`/resource/${resource.id}/edit`} color="primary" size="sm" data-cy="entityEditButton">
+                            <FontAwesomeIcon icon="pencil-alt" /> <span className="d-none d-md-inline">Edit</span>
+                          </Button>
+                          <Button
+                            onClick={() =>
+                              (window.location.href = `/resource/${resource.id}/delete?page=${paginationState.activePage}&sort=${paginationState.sort},${paginationState.order}`)
+                            }
+                            color="danger"
+                            size="sm"
+                            data-cy="entityDeleteButton"
+                          >
+                            <FontAwesomeIcon icon="trash" /> <span className="d-none d-md-inline">Delete</span>
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className={resourceList && resourceList.length > 0 ? '' : 'd-none'}>
+                <div className="justify-content-center d-flex">
+                  <JhiItemCount page={paginationState.activePage} total={totalItems} itemsPerPage={paginationState.itemsPerPage} />
+                </div>
+                <div className="justify-content-center d-flex">
+                  <JhiPagination
+                    activePage={paginationState.activePage}
+                    onSelect={handlePagination}
+                    maxButtons={5}
+                    itemsPerPage={paginationState.itemsPerPage}
+                    totalItems={totalItems}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            !loading && (
+              <div className="alert alert-warning">
+                <FontAwesomeIcon icon="info-circle" /> No Resources found
+              </div>
+            )
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 };

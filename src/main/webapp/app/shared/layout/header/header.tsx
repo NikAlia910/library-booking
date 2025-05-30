@@ -1,12 +1,12 @@
 import './header.scss';
 
 import React, { useState } from 'react';
-
-import { Collapse, Nav, Navbar, NavbarToggler } from 'reactstrap';
+import { Navbar, Nav, NavbarToggler, Collapse } from 'reactstrap';
 import LoadingBar from 'react-redux-loading-bar';
 
-import { AccountMenu, AdminMenu, EntitiesMenu } from '../menus';
-import { Brand, Home } from './header-components';
+import { Home, Brand } from './header-components';
+import { AdminMenu, EntitiesMenu, AccountMenu } from '../menus';
+import { useAppDispatch } from 'app/config/store';
 
 export interface IHeaderProps {
   isAuthenticated: boolean;
@@ -14,17 +14,11 @@ export interface IHeaderProps {
   ribbonEnv: string;
   isInProduction: boolean;
   isOpenAPIEnabled: boolean;
+  currentLocale: string;
 }
 
 const Header = (props: IHeaderProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const renderDevRibbon = () =>
-    props.isInProduction === false ? (
-      <div className="ribbon dev">
-        <a href="">Development</a>
-      </div>
-    ) : null;
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
@@ -32,17 +26,18 @@ const Header = (props: IHeaderProps) => {
 
   return (
     <div id="app-header">
-      {renderDevRibbon()}
       <LoadingBar className="loading-bar" />
-      <Navbar data-cy="navbar" dark expand="md" fixed="top" className="jh-navbar">
+      <Navbar data-cy="navbar" dark expand="md" fixed="top" className="bg-primary">
         <NavbarToggler aria-label="Menu" onClick={toggleMenu} />
         <Brand />
         <Collapse isOpen={menuOpen} navbar>
           <Nav id="header-tabs" className="ms-auto" navbar>
             <Home />
-            {props.isAuthenticated && <EntitiesMenu />}
-            {props.isAuthenticated && props.isAdmin && (
-              <AdminMenu showOpenAPI={props.isOpenAPIEnabled} showDatabase={!props.isInProduction} />
+            {props.isAuthenticated && (
+              <>
+                <EntitiesMenu />
+                {props.isAdmin && <AdminMenu showOpenAPI={props.isOpenAPIEnabled} showDatabase={!props.isInProduction} />}
+              </>
             )}
             <AccountMenu isAuthenticated={props.isAuthenticated} />
           </Nav>

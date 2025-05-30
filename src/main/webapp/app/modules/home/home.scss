@@ -2,9 +2,95 @@
 Main page styles
 ========================================================================== */
 .hipster {
-  display: inline-block;
-  width: 100%;
-  height: 497px;
-  background: url('/content/images/jhipster_family_member_2.svg') no-repeat center top;
-  background-size: contain;
+  display: none;
+}
+
+h1.display-4 {
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.lead {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  .card-title {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 500;
+  }
+}
+
+.list-unstyled {
+  li {
+    padding: 0.5rem 0;
+    color: #34495e;
+    font-size: 1rem;
+
+    &:before {
+      color: #27ae60;
+      margin-right: 0.5rem;
+    }
+  }
+}
+
+.alert {
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+
+  &.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  &.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .alert-link {
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .container-fluid {
+    padding: 2rem;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .card {
+    margin-bottom: 1rem;
+  }
 }

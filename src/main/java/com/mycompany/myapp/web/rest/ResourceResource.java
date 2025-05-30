@@ -1,5 +1,7 @@
 package com.mycompany.myapp.web.rest;
 
+import com.mycompany.myapp.domain.Resource;
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.service.ResourceService;
 import com.mycompany.myapp.service.dto.ResourceDTO;
@@ -28,10 +30,10 @@ import tech.jhipster.web.util.ResponseUtil;
  * REST controller for managing {@link com.mycompany.myapp.domain.Resource}.
  */
 @RestController
-@RequestMapping("/api/resources")
+@RequestMapping("/api")
 public class ResourceResource {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ResourceResource.class);
+    private final Logger log = LoggerFactory.getLogger(ResourceResource.class);
 
     private static final String ENTITY_NAME = "resource";
 
@@ -50,38 +52,38 @@ public class ResourceResource {
     /**
      * {@code POST  /resources} : Create a new resource.
      *
-     * @param resourceDTO the resourceDTO to create.
-     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new resourceDTO, or with status {@code 400 (Bad Request)} if the resource has already an ID.
+     * @param resourceDTO the resource to create.
+     * @return the {@link ResponseEntity} with status {@code 201 (Created)} and with body the new resource, or with status {@code 400 (Bad Request)} if the resource has already an ID.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PostMapping("")
+    @PostMapping("/resources")
     public ResponseEntity<ResourceDTO> createResource(@Valid @RequestBody ResourceDTO resourceDTO) throws URISyntaxException {
-        LOG.debug("REST request to save Resource : {}", resourceDTO);
+        log.debug("REST request to save Resource : {}", resourceDTO);
         if (resourceDTO.getId() != null) {
             throw new BadRequestAlertException("A new resource cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        resourceDTO = resourceService.save(resourceDTO);
-        return ResponseEntity.created(new URI("/api/resources/" + resourceDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, resourceDTO.getId().toString()))
-            .body(resourceDTO);
+        ResourceDTO result = resourceService.save(resourceDTO);
+        return ResponseEntity.created(new URI("/api/resources/" + result.getId()))
+            .headers(HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.getId().toString()))
+            .body(result);
     }
 
     /**
      * {@code PUT  /resources/:id} : Updates an existing resource.
      *
-     * @param id the id of the resourceDTO to save.
-     * @param resourceDTO the resourceDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated resourceDTO,
-     * or with status {@code 400 (Bad Request)} if the resourceDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the resourceDTO couldn't be updated.
+     * @param id the id of the resource to save.
+     * @param resourceDTO the resource to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated resource,
+     * or with status {@code 400 (Bad Request)} if the resource is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the resource couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PutMapping("/{id}")
+    @PutMapping("/resources/{id}")
     public ResponseEntity<ResourceDTO> updateResource(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ResourceDTO resourceDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to update Resource : {}, {}", id, resourceDTO);
+        log.debug("REST request to update Resource : {}, {}", id, resourceDTO);
         if (resourceDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -93,29 +95,29 @@ public class ResourceResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        resourceDTO = resourceService.update(resourceDTO);
+        ResourceDTO result = resourceService.update(resourceDTO);
         return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, resourceDTO.getId().toString()))
-            .body(resourceDTO);
+            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, resourceDTO.getId().toString()))
+            .body(result);
     }
 
     /**
      * {@code PATCH  /resources/:id} : Partial updates given fields of an existing resource, field will ignore if it is null
      *
-     * @param id the id of the resourceDTO to save.
-     * @param resourceDTO the resourceDTO to update.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated resourceDTO,
-     * or with status {@code 400 (Bad Request)} if the resourceDTO is not valid,
-     * or with status {@code 404 (Not Found)} if the resourceDTO is not found,
-     * or with status {@code 500 (Internal Server Error)} if the resourceDTO couldn't be updated.
+     * @param id the id of the resource to save.
+     * @param resourceDTO the resource to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated resource,
+     * or with status {@code 400 (Bad Request)} if the resource is not valid,
+     * or with status {@code 404 (Not Found)} if the resource is not found,
+     * or with status {@code 500 (Internal Server Error)} if the resource couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
-    @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PatchMapping(value = "/resources/{id}", consumes = { "application/json", "application/merge-patch+json" })
     public ResponseEntity<ResourceDTO> partialUpdateResource(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ResourceDTO resourceDTO
     ) throws URISyntaxException {
-        LOG.debug("REST request to partial update Resource partially : {}, {}", id, resourceDTO);
+        log.debug("REST request to partial update Resource partially : {}, {}", id, resourceDTO);
         if (resourceDTO.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
@@ -131,7 +133,7 @@ public class ResourceResource {
 
         return ResponseUtil.wrapOrNotFound(
             result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, resourceDTO.getId().toString())
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, resourceDTO.getId().toString())
         );
     }
 
@@ -139,12 +141,27 @@ public class ResourceResource {
      * {@code GET  /resources} : get all the resources.
      *
      * @param pageable the pagination information.
+     * @param title optional title to search for.
+     * @param author optional author to search for.
+     * @param keywords optional keywords to search for.
+     * @param resourceType optional resource type to filter by.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of resources in body.
      */
-    @GetMapping("")
-    public ResponseEntity<List<ResourceDTO>> getAllResources(@org.springdoc.core.annotations.ParameterObject Pageable pageable) {
-        LOG.debug("REST request to get a page of Resources");
-        Page<ResourceDTO> page = resourceService.findAll(pageable);
+    @GetMapping("/resources")
+    public ResponseEntity<List<ResourceDTO>> getAllResources(
+        Pageable pageable,
+        @RequestParam(required = false) String title,
+        @RequestParam(required = false) String author,
+        @RequestParam(required = false) String keywords,
+        @RequestParam(required = false) ResourceType resourceType
+    ) {
+        log.debug("REST request to get Resources by search criteria");
+        Page<ResourceDTO> page;
+        if (title != null || author != null || keywords != null || resourceType != null) {
+            page = resourceService.search(title, author, keywords, resourceType, pageable);
+        } else {
+            page = resourceService.findAll(pageable);
+        }
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
         return ResponseEntity.ok().headers(headers).body(page.getContent());
     }
@@ -152,28 +169,28 @@ public class ResourceResource {
     /**
      * {@code GET  /resources/:id} : get the "id" resource.
      *
-     * @param id the id of the resourceDTO to retrieve.
-     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the resourceDTO, or with status {@code 404 (Not Found)}.
+     * @param id the id of the resource to retrieve.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the resource, or with status {@code 404 (Not Found)}.
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<ResourceDTO> getResource(@PathVariable("id") Long id) {
-        LOG.debug("REST request to get Resource : {}", id);
-        Optional<ResourceDTO> resourceDTO = resourceService.findOne(id);
-        return ResponseUtil.wrapOrNotFound(resourceDTO);
+    @GetMapping("/resources/{id}")
+    public ResponseEntity<ResourceDTO> getResource(@PathVariable Long id) {
+        log.debug("REST request to get Resource : {}", id);
+        Optional<ResourceDTO> resource = resourceService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(resource);
     }
 
     /**
      * {@code DELETE  /resources/:id} : delete the "id" resource.
      *
-     * @param id the id of the resourceDTO to delete.
+     * @param id the id of the resource to delete.
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteResource(@PathVariable("id") Long id) {
-        LOG.debug("REST request to delete Resource : {}", id);
+    @DeleteMapping("/resources/{id}")
+    public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
+        log.debug("REST request to delete Resource : {}", id);
         resourceService.delete(id);
         return ResponseEntity.noContent()
-            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString()))
+            .headers(HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()))
             .build();
     }
 }

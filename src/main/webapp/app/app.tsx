@@ -45,6 +45,7 @@ export const App = () => {
             ribbonEnv={ribbonEnv}
             isInProduction={isInProduction}
             isOpenAPIEnabled={isOpenAPIEnabled}
+            currentLocale="en"
           />
         </ErrorBoundary>
         <div className="container-fluid view-container" id="app-view-container">

@@ -38,10 +38,14 @@ Development Ribbon
 Navbar styles
 ========================================================================== */
 .jh-navbar {
-  background-color: #353d47;
-  padding: 0.2em 1em;
+  background-color: #3498db;
+  padding: 0.1em 1em;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 35px;
+  display: flex;
+  align-items: center;
   .profile-image {
-    margin: -10px 0;
+    margin: -10px 0px;
     height: 40px;
     width: 40px;
     border-radius: 50%;
@@ -49,7 +53,7 @@ Navbar styles
   .dropdown-item.active,
   .dropdown-item.active:focus,
   .dropdown-item.active:hover {
-    background-color: #353d47;
+    background-color: #2980b9;
   }
   .dropdown-toggle::after {
     margin-left: 0.15em;
@@ -62,21 +66,41 @@ Navbar styles
   }
   a.nav-link {
     font-weight: 400;
-    > span {
-      margin-left: 5px;
+    color: white !important;
+    &:hover {
+      color: #ecf0f1 !important;
     }
   }
   .jh-navbar-toggler {
-    color: #ccc;
+    color: #fff;
     font-size: 1.5em;
     padding: 10px;
     &:hover {
-      color: #fff;
+      color: #ecf0f1;
     }
   }
 }
 .navbar-brand {
   overflow: hidden;
+  padding: 0;
+  margin: 0;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  .brand-icon {
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+    color: white;
+  }
+  .brand-title {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 400;
+    vertical-align: middle;
+  }
 }
 
 .jh-navbar .navbar-nav .nav-link {
@@ -120,4 +144,10 @@ Navbar styles
   position: absolute;
   top: 0;
   z-index: 1031;
+}
+
+/* Adjust dropdown menu positioning */
+.dropdown-menu {
+  margin-top: 0;
+  font-size: 0.9rem;
 }
