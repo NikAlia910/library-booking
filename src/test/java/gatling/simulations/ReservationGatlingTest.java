@@ -68,10 +68,20 @@ public class ReservationGatlingTest extends Simulation {
                         .body(
                             StringBody(
                                 "{" +
-                                "\"reservationDate\": \"2020-01-01T00:00:00.000Z\"" +
-                                ", \"startTime\": \"2020-01-01T00:00:00.000Z\"" +
-                                ", \"endTime\": \"2020-01-01T00:00:00.000Z\"" +
-                                ", \"reservationId\": \"SAMPLE_TEXT\"" +
+                                "\"reservationDate\": \"" +
+                                java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS) +
+                                "\"" +
+                                ", \"startTime\": \"" +
+                                java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS) +
+                                "\"" +
+                                ", \"endTime\": \"" +
+                                java.time.Instant.now()
+                                    .plus(1, java.time.temporal.ChronoUnit.DAYS)
+                                    .plus(2, java.time.temporal.ChronoUnit.HOURS) +
+                                "\"" +
+                                ", \"reservationId\": \"PERF_TEST_" +
+                                System.currentTimeMillis() +
+                                "\"" +
                                 "}"
                             )
                         )
