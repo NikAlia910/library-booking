@@ -1,4 +1,3 @@
-```jdl
 entity Resource {
   title String required maxlength(255),
   author String maxlength(255),
@@ -19,14 +18,12 @@ enum ResourceType {
   EQUIPMENT
 }
 
-with builtInEntity User
-
 relationship OneToMany {
   Resource{reservation} to Reservation{resource required}
 }
 
 relationship ManyToOne {
-  Reservation{user(login) required} to User
+  Reservation{user(login) required} to User with builtInEntity
 }
 
 service Resource, Reservation with serviceClass
@@ -34,4 +31,3 @@ service Resource, Reservation with serviceClass
 paginate Resource, Reservation with pagination
 
 dto Resource, Reservation with mapstruct
-```
