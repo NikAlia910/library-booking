@@ -48,14 +48,20 @@ import org.springframework.transaction.annotation.Transactional;
 @WithMockUser
 class ReservationResourceIT {
 
-    private static final Instant DEFAULT_RESERVATION_DATE = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_RESERVATION_DATE = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant DEFAULT_RESERVATION_DATE = Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant UPDATED_RESERVATION_DATE = Instant.now().plus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
 
-    private static final Instant DEFAULT_START_TIME = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_START_TIME = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant DEFAULT_START_TIME = Instant.now().plus(1, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant UPDATED_START_TIME = Instant.now().plus(2, ChronoUnit.DAYS).truncatedTo(ChronoUnit.MILLIS);
 
-    private static final Instant DEFAULT_END_TIME = Instant.ofEpochMilli(0L);
-    private static final Instant UPDATED_END_TIME = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant DEFAULT_END_TIME = Instant.now()
+        .plus(1, ChronoUnit.DAYS)
+        .plus(2, ChronoUnit.HOURS)
+        .truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant UPDATED_END_TIME = Instant.now()
+        .plus(2, ChronoUnit.DAYS)
+        .plus(2, ChronoUnit.HOURS)
+        .truncatedTo(ChronoUnit.MILLIS);
 
     private static final String DEFAULT_RESERVATION_ID = "AAAAAAAAAA";
     private static final String UPDATED_RESERVATION_ID = "BBBBBBBBBB";
