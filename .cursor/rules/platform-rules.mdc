@@ -1,0 +1,66 @@
+```json
+---
+description: Guides the AI to understand and generate code for a Library Booking System, focusing on resource management, user reservations, and availability tracking.
+globs: 
+alwaysApply: false
+---
+{
+  "name": "Library Booking System",
+  "description": "Guides the AI to understand and generate code for a Library Booking System, focusing on resource management, user reservations, and availability tracking.",
+  "triggers": [
+    {
+      "type": "file_extension",
+      "values": [".js", ".jsx", ".ts", ".tsx", ".py", ".java", ".html", ".css", ".sql"]
+    },
+    {
+      "type": "file_content",
+      "contains": ["library", "book", "resource", "reservation", "patron", "booking", "availability", "calendar", "loan", "meeting room"]
+    },
+    {
+      "type": "prompt_content",
+      "contains": ["library booking system", "resource reservation", "book a resource", "availability calendar", "patron reservation", "manage bookings", "online reservation", "library management"]
+    }
+  ],
+  "actions": [
+    {
+      "type": "set_context",
+      "context": {
+        "domain": "Library Resource Booking",
+        "purpose": "Managing library resources and patron reservations.",
+        "features": [
+          "Resource Search (by title, author, keyword, resource type)",
+          "Availability Calendar",
+          "Reservation Management (create, update, cancel)",
+          "Patron Authentication and Authorization",
+          "Email Confirmation",
+          "Reservation Limit Enforcement",
+          "Overlapping Reservation Prevention",
+          "Reporting and Analytics (reservation history, resource usage)",
+          "Resource Management (add, edit, delete resources)",
+          "User Management (add, edit, delete patrons)"
+        ],
+        "target_audience": "Library Patrons and Staff",
+        "business_rules": {
+          "password_policy": "Minimum 8 characters, including at least one uppercase letter, one lowercase letter, and one number.",
+          "max_active_reservations": "A patron can only have a maximum of 5 active reservations at any given time.",
+          "reservation_window": "Reservations can be made up to 30 days in advance."
+        },
+        "ui_ux_guidelines": {
+          "search_interface": "Clear and intuitive search fields and filters.",
+          "availability_calendar": "Easy to read and understand, with clear visual cues for available and unavailable time slots.",
+          "reservation_confirmation": "Display all relevant reservation details in a clear and concise manner.",
+          "responsiveness": "Fully responsive across different devices (desktops, tablets, mobile phones).",
+          "accessibility": "Adhere to accessibility guidelines (WCAG) to ensure usability for all patrons.",
+          "user_flow": "Simple and intuitive booking process.",
+          "feedback": "Provide clear and immediate feedback to user actions (e.g., loading indicators, success messages, error messages).",
+          "consistency": "Maintain consistent styling and behavior across all pages and components."
+        }
+      }
+    },
+    {
+        "type":"add_instruction",
+        "instruction":"When generating UI code or suggestions, prioritize responsiveness, accessibility, and a clear, intuitive user experience. Ensure the availability calendar is easily understandable. When generating backend code, focus on enforcing business rules (password policy, reservation limits, booking window) and preventing overlapping reservations.  Ensure data integrity and security are paramount."
+    }
+  ]
+}
+```
