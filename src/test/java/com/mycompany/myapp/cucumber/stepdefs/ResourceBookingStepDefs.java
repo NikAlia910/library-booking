@@ -10,6 +10,7 @@ import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ReservationRepository;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.repository.UserRepository;
+import com.mycompany.myapp.service.DateTimeService;
 import com.mycompany.myapp.service.ReservationService;
 import com.mycompany.myapp.service.ResourceService;
 import com.mycompany.myapp.service.dto.ReservationDTO;
@@ -30,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -66,6 +68,9 @@ public class ResourceBookingStepDefs extends StepDefs {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private DateTimeService dateTimeService;
+
     private User currentUser;
     private List<ResourceDTO> searchResults;
     private ReservationDTO reservationResult;
@@ -74,32 +79,31 @@ public class ResourceBookingStepDefs extends StepDefs {
     private ReservationDTO confirmationDetails;
     private Resource currentResource;
     private List<Reservation> availabilityCalendar;
-    private LocalDate mockCurrentDate;
+    private int activeReservationsCount;
 
     @Before
     public void setup() {
         // Clean up test data before each scenario
         reservationRepository.deleteAll();
         resourceRepository.deleteAll();
-        // Clean up users except system users (admin, etc.)
+        // Clean up test users to avoid constraint violations
         userRepository
             .findAll()
             .stream()
-            .filter(user -> user.getLogin().startsWith("testuser"))
+            .filter(user -> user.getEmail() != null && user.getEmail().contains("@example.com"))
             .forEach(user -> userRepository.delete(user));
 
-        // Create a test user for scenarios
-        currentUser = createTestUser();
-
         // Reset state
-        searchResults = null;
-        reservationResult = null;
-        lastErrorMessage = null;
+        searchResults = new ArrayList<>();
+        currentUser = createTestUser();
         reservationSuccessful = false;
+        lastErrorMessage = null;
         confirmationDetails = null;
-        currentResource = null;
-        availabilityCalendar = null;
-        mockCurrentDate = LocalDate.now();
+        availabilityCalendar = new ArrayList<>();
+        activeReservationsCount = 0;
+
+        // Clear any mocked date
+        dateTimeService.clearMockedCurrentDate();
     }
 
     @Given("I am a registered library patron")
@@ -167,8 +171,9 @@ public class ResourceBookingStepDefs extends StepDefs {
 
     @Given("today's date is {string}")
     public void todays_date_is(String date) {
-        mockCurrentDate = LocalDate.parse(date);
-        // This would need to be implemented in the business logic to support date mocking
+        LocalDate currentDate = LocalDate.parse(date);
+        // Set the mocked current date in the service
+        dateTimeService.setMockedCurrentDate(currentDate);
     }
 
     @Given("the resource {string} has an existing reservation from {string} to {string}")

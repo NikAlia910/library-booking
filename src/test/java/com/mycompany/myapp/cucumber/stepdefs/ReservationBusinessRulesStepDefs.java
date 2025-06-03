@@ -9,6 +9,7 @@ import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ReservationRepository;
 import com.mycompany.myapp.repository.ResourceRepository;
 import com.mycompany.myapp.repository.UserRepository;
+import com.mycompany.myapp.service.DateTimeService;
 import com.mycompany.myapp.service.ReservationService;
 import com.mycompany.myapp.service.ResourceService;
 import com.mycompany.myapp.service.dto.ReservationDTO;
@@ -64,6 +65,9 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private DateTimeService dateTimeService;
+
     private User currentPatron;
     private LocalDate currentDate;
     private boolean lastReservationAccepted;
@@ -88,6 +92,9 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
         lastReservationAccepted = false;
         lastErrorMessage = null;
         multipleReservations = new ArrayList<>();
+
+        // Clear any mocked date
+        dateTimeService.clearMockedCurrentDate();
     }
 
     @Given("the library system is operational")
@@ -152,7 +159,8 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
     @Given("today is {string}")
     public void today_is(String date) {
         currentDate = LocalDate.parse(date);
-        // This would need to be implemented in business logic to support date mocking
+        // Set the mocked current date in the service
+        dateTimeService.setMockedCurrentDate(currentDate);
     }
 
     @Given("{string} is reserved from {string} to {string}")

@@ -36,9 +36,16 @@ public class ReservationService {
 
     private final ReservationMapper reservationMapper;
 
-    public ReservationService(ReservationRepository reservationRepository, ReservationMapper reservationMapper) {
+    private final DateTimeService dateTimeService;
+
+    public ReservationService(
+        ReservationRepository reservationRepository,
+        ReservationMapper reservationMapper,
+        DateTimeService dateTimeService
+    ) {
         this.reservationRepository = reservationRepository;
         this.reservationMapper = reservationMapper;
+        this.dateTimeService = dateTimeService;
     }
 
     /**
@@ -237,7 +244,7 @@ public class ReservationService {
     private void validateAdvanceBookingWindow(ReservationDTO reservationDTO) {
         if (reservationDTO.getReservationDate() != null) {
             LocalDate reservationDate = reservationDTO.getReservationDate().atZone(ZoneOffset.UTC).toLocalDate();
-            LocalDate currentDate = LocalDate.now();
+            LocalDate currentDate = dateTimeService.getCurrentDate();
 
             long daysBetween = ChronoUnit.DAYS.between(currentDate, reservationDate);
 
