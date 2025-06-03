@@ -98,7 +98,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="reservation/new"
+          path="library/reservation/new"
           element={
             <PrivateRoute hasAnyAuthorities={[AUTHORITIES.USER]}>
               <ReservationForm />

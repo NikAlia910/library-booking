@@ -97,7 +97,7 @@ export const LibraryDashboard = () => {
           </Col>
           <Col md="4" className="text-end">
             <div className="d-grid gap-2">
-              <Button color="light" size="lg" onClick={() => navigate('/reservation/new')} className="shadow">
+              <Button color="light" size="lg" onClick={() => navigate('/library/reservation/new')} className="shadow">
                 <FontAwesomeIcon icon={faPlus} className="me-2" />
                 New Reservation
               </Button>
