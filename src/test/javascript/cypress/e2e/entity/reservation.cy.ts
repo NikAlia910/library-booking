@@ -50,6 +50,23 @@ describe('Reservation e2e test', () => {
     cy.intercept('GET', '/api/reservations+(?*|)').as('entitiesRequest');
     cy.intercept('POST', '/api/reservations').as('postEntityRequest');
     cy.intercept('DELETE', '/api/reservations/*').as('deleteEntityRequest');
+
+    // Mock the users and resources API calls to allow the component to render
+    cy.intercept('GET', '/api/users*', {
+      statusCode: 200,
+      body: [
+        { id: 1, login: 'admin', firstName: 'Admin', lastName: 'User' },
+        { id: 2, login: 'user', firstName: 'User', lastName: 'User' },
+      ],
+    }).as('usersRequest');
+
+    cy.intercept('GET', '/api/resources*', {
+      statusCode: 200,
+      body: [
+        { id: 1, title: 'Test Book', author: 'Test Author', resourceType: 'BOOK' },
+        { id: 2, title: 'Test Room', resourceType: 'MEETING_ROOM' },
+      ],
+    }).as('resourcesRequest');
   });
 
   /* Disabled due to incompatibility
@@ -124,7 +141,18 @@ describe('Reservation e2e test', () => {
       it('should load create Reservation page', () => {
         cy.get(entityCreateButtonSelector).click();
         cy.url().should('match', new RegExp('/reservation/new$'));
-        cy.getEntityCreateUpdateHeading('Reservation');
+
+        // Wait for the page to load and log what we see
+        cy.wait(2000); // Give extra time for the page to load
+
+        // Debug: Log the page content
+        cy.get('body').then($body => {
+          console.log('Page body:', $body.html());
+        });
+
+        // Try to find the heading with a longer timeout
+        cy.get(`[data-cy="ReservationCreateUpdateHeading"]`, { timeout: 10000 }).should('be.visible');
+
         cy.get(entityCreateSaveButtonSelector).should('exist');
         cy.get(entityCreateCancelButtonSelector).click();
         cy.wait('@entitiesRequest').then(({ response }) => {
