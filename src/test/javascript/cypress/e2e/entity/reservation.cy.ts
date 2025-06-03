@@ -142,13 +142,9 @@ describe('Reservation e2e test', () => {
         cy.get(entityCreateButtonSelector).click();
         cy.url().should('match', new RegExp('/reservation/new$'));
 
-        // Wait for the page to load and log what we see
-        cy.wait(2000); // Give extra time for the page to load
-
-        // Debug: Log the page content
-        cy.get('body').then($body => {
-          console.log('Page body:', $body.html());
-        });
+        // Wait for the API calls to complete before checking for the heading
+        cy.wait('@usersRequest');
+        cy.wait('@resourcesRequest');
 
         // Try to find the heading with a longer timeout
         cy.get(`[data-cy="ReservationCreateUpdateHeading"]`, { timeout: 10000 }).should('be.visible');
