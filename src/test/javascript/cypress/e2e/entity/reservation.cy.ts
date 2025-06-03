@@ -151,8 +151,8 @@ describe('Reservation e2e test', () => {
         // Check what component is actually rendered - look for either component
         cy.get('body').should('not.contain', 'Loading...');
 
-        // Wait for page to stabilize
-        cy.wait(2000);
+        // Wait for page to fully load by ensuring body has content
+        cy.get('body').should('not.be.empty');
 
         // Check for any reservation form elements that indicate the page loaded
         cy.get('body').then($body => {
