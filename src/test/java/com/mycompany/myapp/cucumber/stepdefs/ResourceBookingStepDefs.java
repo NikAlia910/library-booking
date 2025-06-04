@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -163,10 +164,18 @@ public class ResourceBookingStepDefs extends StepDefs {
             reservationRepository.save(reservation);
         }
 
-        // Verify the count using actual repository
-        List<Reservation> userReservations = reservationRepository.findByUserIsCurrentUser();
-        // Note: This query depends on authentication context which may not work in tests
-        // The actual business logic should be implemented in a service method
+        // Verify the count using actual repository query
+        List<Reservation> userReservations = reservationRepository
+            .findAll()
+            .stream()
+            .filter(r -> r.getUser().getId().equals(currentUser.getId()))
+            .toList();
+
+        System.out.println("DEBUG: Created " + userReservations.size() + " reservations for user " + currentUser.getId());
+        activeReservationsCount = userReservations.size();
+
+        // Verify we have the expected count
+        assertThat(userReservations).hasSize(count);
     }
 
     @Given("today's date is {string}")
@@ -349,6 +358,11 @@ public class ResourceBookingStepDefs extends StepDefs {
 
     @Then("the reservation should fail")
     public void the_reservation_should_fail() {
+        if (reservationSuccessful && lastErrorMessage == null) {
+            System.out.println("DEBUG: Reservation succeeded when it should have failed. No error message.");
+        } else if (reservationSuccessful && lastErrorMessage != null) {
+            System.out.println("DEBUG: Reservation succeeded when it should have failed. Error: " + lastErrorMessage);
+        }
         assertThat(reservationSuccessful).isFalse();
     }
 
@@ -431,9 +445,11 @@ public class ResourceBookingStepDefs extends StepDefs {
         reservation.setResource(resource);
         reservation.setUser(user);
         reservation.setReservationId(UUID.randomUUID().toString());
-        reservation.setReservationDate(Instant.now());
-        reservation.setStartTime(Instant.now());
-        reservation.setEndTime(Instant.now().plusSeconds(3600)); // 1 hour later
+        // Use future dates that comply with 1-hour advance rule
+        Instant futureTime = dateTimeService.getCurrentInstant().plus(2, ChronoUnit.HOURS);
+        reservation.setReservationDate(futureTime);
+        reservation.setStartTime(futureTime);
+        reservation.setEndTime(futureTime.plusSeconds(3600)); // 1 hour later
         return reservation;
     }
 

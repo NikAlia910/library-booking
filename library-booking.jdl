@@ -1,33 +1,35 @@
 entity Resource {
-  title String required maxlength(255),
-  author String maxlength(255),
-  keywords String maxlength(255),
-  resourceType ResourceType required
+title String required maxlength(255),
+author String maxlength(255),
+keywords String maxlength(255),
+resourceType ResourceType required
 }
-
 entity Reservation {
-  reservationDate Instant required,
-  startTime Instant required,
-  endTime Instant required,
-  reservationId String required unique
+reservationDate Instant required,
+startTime Instant required,
+endTime Instant required,
+reservationId String required unique
 }
-
 enum ResourceType {
-  BOOK,
-  MEETING_ROOM,
-  EQUIPMENT
+BOOK,
+MEETING_ROOM,
+EQUIPMENT
 }
-
 relationship OneToMany {
-  Resource{reservation} to Reservation{resource required}
+Resource{reservation} to Reservation{resource required}
 }
-
 relationship ManyToOne {
-  Reservation{user(login) required} to User with builtInEntity
+Reservation{user(login) required} to User with builtInEntity
 }
-
 service Resource, Reservation with serviceClass
-
 paginate Resource, Reservation with pagination
-
 dto Resource, Reservation with mapstruct
+validation {
+Reservation{
+reservationDate required,
+startTime required,
+endTime required,
+reservationId required,
+user required
+}
+}

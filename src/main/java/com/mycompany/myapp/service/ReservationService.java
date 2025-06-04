@@ -29,6 +29,7 @@ public class ReservationService {
 
     private static final int MAX_RESERVATIONS_PER_USER = 5;
     private static final int MAX_ADVANCE_BOOKING_DAYS = 30;
+    private static final int MIN_ADVANCE_BOOKING_HOURS = 1;
     private static final int MIN_RESERVATION_DURATION_HOURS = 1;
     private static final int MAX_RESERVATION_DURATION_HOURS = 8;
 
@@ -167,7 +168,11 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<ReservationDTO> findActiveReservationsByUserId(Long userId) {
         log.debug("Request to get active Reservations by user ID : {}", userId);
-        return reservationRepository.findActiveReservationsByUserId(userId, Instant.now()).stream().map(reservationMapper::toDto).toList();
+        return reservationRepository
+            .findActiveReservationsByUserId(userId, dateTimeService.getCurrentInstant())
+            .stream()
+            .map(reservationMapper::toDto)
+            .toList();
     }
 
     /**
@@ -196,11 +201,11 @@ public class ReservationService {
         // 2. Validate maximum reservations per user
         validateMaxReservationsPerUser(reservationDTO);
 
-        // 3. Validate advance booking window
-        validateAdvanceBookingWindow(reservationDTO);
-
-        // 4. Validate no overlapping reservations
+        // 3. Validate no overlapping reservations (check this before advance booking to get proper error messages)
         validateNoOverlappingReservations(reservationDTO);
+
+        // 4. Validate advance booking window (including 1-hour advance rule)
+        validateAdvanceBookingWindow(reservationDTO);
     }
 
     private void validateTimeConstraints(ReservationDTO reservationDTO) {
@@ -227,7 +232,7 @@ public class ReservationService {
         if (reservationDTO.getUser() != null && reservationDTO.getUser().getId() != null) {
             long activeReservationsCount = reservationRepository.countActiveReservationsByUserId(
                 reservationDTO.getUser().getId(),
-                Instant.now()
+                dateTimeService.getCurrentInstant()
             );
 
             // Don't count the current reservation if it's an update
@@ -252,6 +257,16 @@ public class ReservationService {
                 throw new IllegalArgumentException(
                     "Reservations cannot be made more than " + MAX_ADVANCE_BOOKING_DAYS + " days in advance"
                 );
+            }
+        }
+
+        // Validate that reservations must be made at least 1 hour in advance
+        if (reservationDTO.getStartTime() != null) {
+            Instant currentTime = dateTimeService.getCurrentInstant();
+            long hoursUntilReservation = Duration.between(currentTime, reservationDTO.getStartTime()).toHours();
+
+            if (hoursUntilReservation < MIN_ADVANCE_BOOKING_HOURS) {
+                throw new IllegalArgumentException("Reservations must be made at least " + MIN_ADVANCE_BOOKING_HOURS + " hour in advance");
             }
         }
     }

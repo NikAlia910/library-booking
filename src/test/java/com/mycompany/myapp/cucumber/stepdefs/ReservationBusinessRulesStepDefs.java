@@ -163,6 +163,13 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
         dateTimeService.setMockedCurrentDate(currentDate);
     }
 
+    @Given("current time is {string}")
+    public void current_time_is(String dateTime) {
+        LocalDateTime currentDateTime = LocalDateTime.parse(dateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        // Set the mocked current date and time in the service
+        dateTimeService.setMockedCurrentDateTime(currentDateTime);
+    }
+
     @Given("{string} is reserved from {string} to {string}")
     public void resource_is_reserved_from_to(String resourceTitle, String startDateTime, String endDateTime) {
         Resource resource = findResourceByTitle(resourceTitle);
@@ -182,12 +189,12 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
 
     @When("the patron attempts to make a 6th reservation for {string}")
     public void the_patron_attempts_to_make_6th_reservation_for(String resourceTitle) {
-        attemptReservation(resourceTitle, "2024-02-15 10:00", "2024-02-15 12:00");
+        attemptReservation(resourceTitle, "2025-02-10 10:00", "2025-02-10 12:00");
     }
 
     @When("the patron attempts to make a reservation for {string}")
     public void the_patron_attempts_to_make_reservation_for(String resourceTitle) {
-        attemptReservation(resourceTitle, "2024-02-15 10:00", "2024-02-15 12:00");
+        attemptReservation(resourceTitle, "2025-02-10 10:00", "2025-02-10 12:00");
     }
 
     @When("the patron attempts to reserve {string} for {string}")
@@ -203,7 +210,7 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
     @When("the patron attempts to reserve {string} with end time before start time")
     public void the_patron_attempts_to_reserve_with_invalid_times(String resourceTitle) {
         // Intentionally create invalid reservation with end time before start time
-        attemptReservation(resourceTitle, "2024-02-15 12:00", "2024-02-15 10:00");
+        attemptReservation(resourceTitle, "2025-02-10 12:00", "2025-02-10 10:00");
     }
 
     @When("the patron makes multiple reservations")
@@ -214,9 +221,11 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
                 Resource resource = createTestResource("Multi Resource " + i);
 
                 ReservationDTO reservationDTO = new ReservationDTO();
-                reservationDTO.setReservationDate(Instant.now().plus(i, ChronoUnit.DAYS));
-                reservationDTO.setStartTime(Instant.now().plus(i, ChronoUnit.DAYS));
-                reservationDTO.setEndTime(Instant.now().plus(i, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS));
+                // Use future dates that comply with 1-hour advance rule
+                Instant futureDate = dateTimeService.getCurrentInstant().plus(30 + i, ChronoUnit.DAYS);
+                reservationDTO.setReservationDate(futureDate);
+                reservationDTO.setStartTime(futureDate);
+                reservationDTO.setEndTime(futureDate.plus(2, ChronoUnit.HOURS));
                 reservationDTO.setReservationId(UUID.randomUUID().toString());
 
                 UserDTO userDTO = userMapper.userToUserDTO(currentPatron);
@@ -240,6 +249,9 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
 
     @Then("the reservation should be accepted")
     public void the_reservation_should_be_accepted() {
+        if (!lastReservationAccepted && lastErrorMessage != null) {
+            System.out.println("DEBUG: Reservation was rejected with error: " + lastErrorMessage);
+        }
         assertThat(lastReservationAccepted).isTrue();
     }
 
@@ -329,9 +341,11 @@ public class ReservationBusinessRulesStepDefs extends StepDefs {
         reservation.setResource(resource);
         reservation.setUser(user);
         reservation.setReservationId(UUID.randomUUID().toString());
-        reservation.setReservationDate(Instant.now());
-        reservation.setStartTime(Instant.now());
-        reservation.setEndTime(Instant.now().plusSeconds(3600)); // 1 hour later
+        // Use future dates that comply with 1-hour advance rule
+        Instant futureTime = dateTimeService.getCurrentInstant().plus(2, ChronoUnit.HOURS);
+        reservation.setReservationDate(futureTime);
+        reservation.setStartTime(futureTime);
+        reservation.setEndTime(futureTime.plusSeconds(3600)); // 1 hour later
         return reservation;
     }
 

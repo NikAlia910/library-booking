@@ -1,12 +1,7 @@
 ```json
----
-description: Guides the AI to understand and generate code for a Library Booking System, focusing on resource management, user reservations, and availability tracking.
-globs: 
-alwaysApply: false
----
 {
-  "name": "Library Booking System",
-  "description": "Guides the AI to understand and generate code for a Library Booking System, focusing on resource management, user reservations, and availability tracking.",
+  "name": "Library Resource Booking Platform",
+  "description": "Guides the AI to understand and generate code for a Library Resource Booking platform, enabling patrons to reserve resources online with a modern and interactive UI/UX.",
   "triggers": [
     {
       "type": "file_extension",
@@ -14,52 +9,58 @@ alwaysApply: false
     },
     {
       "type": "file_content",
-      "contains": ["library", "book", "resource", "reservation", "patron", "booking", "availability", "calendar", "loan", "meeting room"]
+      "contains": ["library", "resource", "book", "meeting room", "reservation", "patron", "availability", "booking", "calendar", "online booking"]
     },
     {
       "type": "prompt_content",
-      "contains": ["library booking system", "resource reservation", "book a resource", "availability calendar", "patron reservation", "manage bookings", "online reservation", "library management"]
+      "contains": ["resource booking", "library platform", "online reservation", "patron management", "availability calendar", "booking system", "manage resources", "modern UI", "interactive UX"]
     }
   ],
   "actions": [
     {
       "type": "set_context",
       "context": {
-        "domain": "Library Resource Booking",
-        "purpose": "Managing library resources and patron reservations.",
+        "domain": "Library Resource Booking Platform",
+        "purpose": "Enabling patrons to reserve resources online",
         "features": [
           "Resource Search (by title, author, keyword, resource type)",
           "Availability Calendar",
-          "Reservation Management (create, update, cancel)",
-          "Patron Authentication and Authorization",
+          "Reservation Management",
+          "Patron Authentication",
           "Email Confirmation",
-          "Reservation Limit Enforcement",
+          "Maximum Reservation Limit Enforcement",
           "Overlapping Reservation Prevention",
-          "Reporting and Analytics (reservation history, resource usage)",
-          "Resource Management (add, edit, delete resources)",
-          "User Management (add, edit, delete patrons)"
+          "Admin Resource Management",
+          "Reporting and Analytics (reservation statistics)",
+          "User Account Management"
         ],
         "target_audience": "Library Patrons and Staff",
         "business_rules": {
-          "password_policy": "Minimum 8 characters, including at least one uppercase letter, one lowercase letter, and one number.",
+          "password_policy": "Minimum of 8 characters, including at least one uppercase letter, one lowercase letter, and one number.",
           "max_active_reservations": "A patron can only have a maximum of 5 active reservations at any given time.",
-          "reservation_window": "Reservations can be made up to 30 days in advance."
+          "reservation_advance_notice": "Reservations can be made up to 30 days in advance.",
+          "minimum_reservation_lead_time": "Reservations must be made at least 1 hour in advance."
         },
         "ui_ux_guidelines": {
-          "search_interface": "Clear and intuitive search fields and filters.",
-          "availability_calendar": "Easy to read and understand, with clear visual cues for available and unavailable time slots.",
-          "reservation_confirmation": "Display all relevant reservation details in a clear and concise manner.",
-          "responsiveness": "Fully responsive across different devices (desktops, tablets, mobile phones).",
-          "accessibility": "Adhere to accessibility guidelines (WCAG) to ensure usability for all patrons.",
-          "user_flow": "Simple and intuitive booking process.",
-          "feedback": "Provide clear and immediate feedback to user actions (e.g., loading indicators, success messages, error messages).",
-          "consistency": "Maintain consistent styling and behavior across all pages and components."
+          "design_system": "Use a consistent and modern design system (e.g., Material Design, Fluent Design, or a custom one) that aligns with the chosen framework's best practices.",
+          "responsiveness": "Ensure the UI is fully responsive across different devices (desktops, tablets, mobile phones).",
+          "interactivity": "Incorporate interactive elements like modals, tooltips, drag-and-drop, and real-time updates to enhance user engagement.",
+          "data_visualization": "Use charts and graphs to visually represent resource availability and reservation statistics.",
+          "accessibility": "Follow accessibility guidelines (WCAG) to ensure the platform is usable by people with disabilities.",
+          "user_flow": "Design intuitive user flows that minimize the number of steps required to complete tasks.",
+          "performance": "Optimize the UI for fast loading times and smooth performance.",
+          "feedback": "Provide clear and immediate feedback to user actions (e.g., loading indicators, success messages).",
+          "consistency": "Maintain consistent styling and behavior across all pages and components.",
+          "modern_aesthetics": "Utilize modern UI patterns, clean layouts, and a visually appealing color palette.",
+          "availability_calendar_visual_cues": "Use clear visual cues (e.g., color-coding) to indicate available and unavailable time slots on the availability calendar.",
+          "reservation_confirmation_display": "Display all relevant reservation details (resource name, date, time, reservation ID) in a clear and concise manner on the confirmation page.",
+          "time_slot_tooltip": "Display a tooltip on grayed-out time slots indicating 'Reservation must be made at least 1 hour in advance.'"
         }
       }
     },
     {
         "type":"add_instruction",
-        "instruction":"When generating UI code or suggestions, prioritize responsiveness, accessibility, and a clear, intuitive user experience. Ensure the availability calendar is easily understandable. When generating backend code, focus on enforcing business rules (password policy, reservation limits, booking window) and preventing overlapping reservations.  Ensure data integrity and security are paramount."
+        "instruction":"When generating UI code or suggestions, prioritize responsiveness, interactivity, and a modern aesthetic. Ensure the UI aligns with the specified design system and accessibility guidelines. Focus on creating intuitive user flows and providing clear feedback to user actions. Optimize for performance and maintain consistency across the platform. When generating backend code, focus on speed and efficiency, and ensure that all business rules (password policy, maximum active reservations, reservation advance notice, and minimum reservation lead time) are enforced."
     }
   ]
 }

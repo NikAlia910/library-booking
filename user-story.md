@@ -1,8 +1,6 @@
-Here's a user story based on the "library booking system" project description and the provided template:
-
-**Title**: Book a Resource (e.g., Book, Room)
+**Title**: Book a Resource Online
 **As a** Library Patron
-**I want** to be able to reserve a resource (book, meeting room, etc.) online
+**I want** to reserve a resource (book, meeting room, etc.) online
 **So that** I can ensure the resource is available when I need it and avoid unnecessary trips to the library.
 
 **Business Logic**:
@@ -10,15 +8,16 @@ Here's a user story based on the "library booking system" project description an
 - Password requires a minimum of 8 characters, including at least one uppercase letter, one lowercase letter, and one number.
 - A patron can only have a maximum of 5 active reservations at any given time.
 - Reservations can be made up to 30 days in advance.
+- Reservations must be made at least 1 hour in advance.
 
 **Acceptance Criteria**:
 
-1.  I can search for available resources by title, author, keyword, or resource type.
-2.  I can view the availability calendar for a specific resource to see when it is already booked.
-3.  I can select a date and time slot for my reservation, provided it is available and within the allowed booking window.
-4.  I receive a confirmation email with the details of my reservation, including the resource name, date, time, and reservation ID.
-5.  The system prevents me from booking a resource if I have already reached my maximum reservation limit.
-6.  The system prevents me from booking a resource if the selected time slot overlaps with an existing reservation.
+1. I can search for available resources by title, author, keyword, or resource type.
+2. I can view the availability calendar for a specific resource to see when it is already booked.
+3. I can select a date and time slot for my reservation, provided it is available and within the allowed booking window.
+4. I receive a confirmation email with the details of my reservation, including the resource name, date, time, and reservation ID.
+5. The system prevents me from booking a resource if I have already reached my maximum reservation limit.
+6. The system prevents me from booking a resource if the selected time slot overlaps with an existing reservation.
 
 **Functional Requirements**:
 
@@ -42,3 +41,4 @@ Here's a user story based on the "library booking system" project description an
 - The availability calendar should be easy to read and understand, with clear visual cues for available and unavailable time slots.
 - The reservation confirmation page should display all relevant reservation details in a clear and concise manner.
 - The UI should adhere to accessibility guidelines (WCAG) to ensure usability for all patrons.
+- Grayed-out time slots with tooltip: “Reservation must be made at least 1 hour in advance.” on the Reservation Time Slot Selection Page.
