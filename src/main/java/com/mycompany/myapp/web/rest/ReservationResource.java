@@ -57,11 +57,14 @@ public class ReservationResource {
      */
     @PostMapping("")
     public ResponseEntity<ReservationDTO> createReservation(@Valid @RequestBody ReservationDTO reservationDTO) throws URISyntaxException {
+        LOG.error("🚨🚨🚨 REST CONTROLLER CALLED [VERSION " + System.currentTimeMillis() + "] - CREATE RESERVATION 🚨🚨🚨");
         LOG.debug("REST request to save Reservation : {}", reservationDTO);
         if (reservationDTO.getId() != null) {
             throw new BadRequestAlertException("A new reservation cannot already have an ID", ENTITY_NAME, "idexists");
         }
+        LOG.error("🚨🚨🚨 ABOUT TO CALL RESERVATION SERVICE [VERSION " + System.currentTimeMillis() + "] 🚨🚨🚨");
         reservationDTO = reservationService.save(reservationDTO);
+        LOG.error("🚨🚨🚨 SERVICE CALL COMPLETED [VERSION " + System.currentTimeMillis() + "] 🚨🚨🚨");
         return ResponseEntity.created(new URI("/api/reservations/" + reservationDTO.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, reservationDTO.getId().toString()))
             .body(reservationDTO);

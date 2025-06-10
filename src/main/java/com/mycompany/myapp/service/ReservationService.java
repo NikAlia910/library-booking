@@ -1,6 +1,7 @@
 package com.mycompany.myapp.service;
 
 import com.mycompany.myapp.domain.Reservation;
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ReservationRepository;
 import com.mycompany.myapp.service.dto.ReservationDTO;
 import com.mycompany.myapp.service.mapper.ReservationMapper;
@@ -31,7 +32,8 @@ public class ReservationService {
     private static final int MAX_ADVANCE_BOOKING_DAYS = 30;
     private static final int MIN_ADVANCE_BOOKING_HOURS = 1;
     private static final int MIN_RESERVATION_DURATION_HOURS = 1;
-    private static final int MAX_RESERVATION_DURATION_HOURS = 8;
+    private static final int MAX_RESERVATION_DURATION_HOURS = 2;
+    private static final int MAX_MEETING_ROOM_HOURS_PER_24H = 2;
 
     private final ReservationRepository reservationRepository;
 
@@ -56,13 +58,34 @@ public class ReservationService {
      * @return the persisted entity.
      */
     public ReservationDTO save(ReservationDTO reservationDTO) {
+        log.error("🚨🚨🚨 SAVE METHOD CALLED - THIS SHOULD APPEAR IN LOGS 🚨🚨🚨");
         log.debug("Request to save Reservation : {}", reservationDTO);
+        log.info("=== RESERVATION VALIDATION STARTING ===");
+        log.info(
+            "Reservation details: User={}, Resource={}, StartTime={}, EndTime={}, Duration={} hours",
+            reservationDTO.getUser() != null ? reservationDTO.getUser().getId() : "null",
+            reservationDTO.getResource() != null
+                ? reservationDTO.getResource().getId() + " (" + reservationDTO.getResource().getResourceType() + ")"
+                : "null",
+            reservationDTO.getStartTime(),
+            reservationDTO.getEndTime(),
+            reservationDTO.getStartTime() != null && reservationDTO.getEndTime() != null
+                ? Duration.between(reservationDTO.getStartTime(), reservationDTO.getEndTime()).toMinutes() / 60.0
+                : "unknown"
+        );
 
         // Validate business rules
-        validateReservationBusinessRules(reservationDTO);
+        try {
+            validateReservationBusinessRules(reservationDTO);
+            log.info("=== RESERVATION VALIDATION PASSED ===");
+        } catch (Exception e) {
+            log.error("=== RESERVATION VALIDATION FAILED: {} ===", e.getMessage());
+            throw e;
+        }
 
         Reservation reservation = reservationMapper.toEntity(reservationDTO);
         reservation = reservationRepository.save(reservation);
+        log.info("=== RESERVATION SAVED SUCCESSFULLY ===");
         return reservationMapper.toDto(reservation);
     }
 
@@ -206,6 +229,9 @@ public class ReservationService {
 
         // 4. Validate advance booking window (including 1-hour advance rule)
         validateAdvanceBookingWindow(reservationDTO);
+
+        // 5. Validate meeting room 2-hour limit within 24 hours
+        validateMeetingRoomTimeLimit(reservationDTO);
     }
 
     private void validateTimeConstraints(ReservationDTO reservationDTO) {
@@ -286,6 +312,125 @@ public class ReservationService {
 
             if (!overlappingReservations.isEmpty()) {
                 throw new IllegalArgumentException("Selected time slot overlaps with an existing reservation");
+            }
+        }
+    }
+
+    private void validateMeetingRoomTimeLimit(ReservationDTO reservationDTO) {
+        log.debug("Validating meeting room time limit for reservation: {}", reservationDTO);
+
+        // Only apply this rule to meeting room reservations
+        if (
+            reservationDTO.getResource() != null &&
+            reservationDTO.getResource().getResourceType() == ResourceType.MEETING_ROOM &&
+            reservationDTO.getUser() != null &&
+            reservationDTO.getUser().getId() != null &&
+            reservationDTO.getStartTime() != null &&
+            reservationDTO.getEndTime() != null
+        ) {
+            log.debug("Meeting room reservation detected for user {} - applying 2-hour limit check", reservationDTO.getUser().getId());
+
+            // Calculate the duration of this reservation
+            long newReservationMinutes = Duration.between(reservationDTO.getStartTime(), reservationDTO.getEndTime()).toMinutes();
+            double newReservationHours = newReservationMinutes / 60.0;
+
+            log.debug("New reservation duration: {} hours", newReservationHours);
+
+            // First, check if this single reservation exceeds 2 hours
+            if (newReservationHours > MAX_MEETING_ROOM_HOURS_PER_24H) {
+                log.warn("Single meeting room reservation exceeds {} hours: {} hours", MAX_MEETING_ROOM_HOURS_PER_24H, newReservationHours);
+                throw new IllegalArgumentException(
+                    String.format(
+                        "Meeting room cannot be reserved for more than %d hours within a 24-hour period. " +
+                        "This reservation is %.1f hours.",
+                        MAX_MEETING_ROOM_HOURS_PER_24H,
+                        newReservationHours
+                    )
+                );
+            }
+
+            // Now check for conflicts with existing reservations within 24-hour windows
+            // We need to check any 24-hour period that could include this reservation
+            Instant checkStart = reservationDTO.getStartTime().minus(24, ChronoUnit.HOURS);
+            Instant checkEnd = reservationDTO.getEndTime().plus(24, ChronoUnit.HOURS);
+
+            log.debug("Checking for existing meeting room reservations from {} to {}", checkStart, checkEnd);
+
+            // Find all meeting room reservations for this user in the extended period
+            List<Reservation> existingReservations = reservationRepository.findMeetingRoomReservationsForUserInPeriod(
+                reservationDTO.getUser().getId(),
+                checkStart,
+                checkEnd
+            );
+
+            log.debug("Found {} existing meeting room reservations in the extended period", existingReservations.size());
+
+            // Filter out the current reservation if it's an update
+            if (reservationDTO.getId() != null) {
+                existingReservations = existingReservations.stream().filter(r -> !r.getId().equals(reservationDTO.getId())).toList();
+                log.debug("After filtering out current reservation, {} reservations remain", existingReservations.size());
+            }
+
+            // Check if this reservation would violate the 2-hour limit in any 24-hour window
+            // We'll check starting from 24 hours before the new reservation to 24 hours after
+            Instant windowStart = reservationDTO.getStartTime().minus(24, ChronoUnit.HOURS);
+            Instant finalCheck = reservationDTO.getEndTime();
+
+            while (windowStart.isBefore(finalCheck) || windowStart.equals(finalCheck)) {
+                Instant windowEnd = windowStart.plus(24, ChronoUnit.HOURS);
+
+                // Calculate total meeting room time for this user in this 24-hour window
+                long totalMinutesInWindow = 0;
+
+                // Add time from existing reservations that overlap with this window
+                for (Reservation existing : existingReservations) {
+                    if (existing.getStartTime().isBefore(windowEnd) && existing.getEndTime().isAfter(windowStart)) {
+                        Instant overlapStart = existing.getStartTime().isAfter(windowStart) ? existing.getStartTime() : windowStart;
+                        Instant overlapEnd = existing.getEndTime().isBefore(windowEnd) ? existing.getEndTime() : windowEnd;
+                        totalMinutesInWindow += Duration.between(overlapStart, overlapEnd).toMinutes();
+                    }
+                }
+
+                // Add time from the new reservation that overlaps with this window
+                if (reservationDTO.getStartTime().isBefore(windowEnd) && reservationDTO.getEndTime().isAfter(windowStart)) {
+                    Instant overlapStart = reservationDTO.getStartTime().isAfter(windowStart) ? reservationDTO.getStartTime() : windowStart;
+                    Instant overlapEnd = reservationDTO.getEndTime().isBefore(windowEnd) ? reservationDTO.getEndTime() : windowEnd;
+                    totalMinutesInWindow += Duration.between(overlapStart, overlapEnd).toMinutes();
+                }
+
+                double totalHoursInWindow = totalMinutesInWindow / 60.0;
+
+                log.debug("Window {} to {}: Total hours = {}", windowStart, windowEnd, totalHoursInWindow);
+
+                if (totalHoursInWindow > MAX_MEETING_ROOM_HOURS_PER_24H) {
+                    log.warn(
+                        "Meeting room time limit exceeded in window {} to {}! Total hours: {}",
+                        windowStart,
+                        windowEnd,
+                        totalHoursInWindow
+                    );
+
+                    throw new IllegalArgumentException(
+                        String.format(
+                            "Meeting room cannot be reserved for more than %d hours within a 24-hour period. " +
+                            "This reservation would result in %.1f hours of meeting room usage between %s and %s.",
+                            MAX_MEETING_ROOM_HOURS_PER_24H,
+                            totalHoursInWindow,
+                            windowStart.toString(),
+                            windowEnd.toString()
+                        )
+                    );
+                }
+
+                // Move window forward by 1 hour for the next check
+                windowStart = windowStart.plus(1, ChronoUnit.HOURS);
+            }
+
+            log.debug("Meeting room time limit validation passed");
+        } else {
+            log.debug("Skipping meeting room validation - not a meeting room or missing required data");
+            if (reservationDTO.getResource() != null) {
+                log.debug("Resource type: {}", reservationDTO.getResource().getResourceType());
             }
         }
     }

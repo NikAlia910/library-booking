@@ -9,6 +9,7 @@
 - A patron can only have a maximum of 5 active reservations at any given time.
 - Reservations can be made up to 30 days in advance.
 - Reservations must be made at least 1 hour in advance.
+- A patron can reserve a specific meeting room for a maximum of 2 hours within a 24-hour period.
 
 **Acceptance Criteria**:
 

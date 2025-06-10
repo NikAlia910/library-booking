@@ -110,8 +110,8 @@ export const ReservationForm = () => {
         newErrors.endTime = 'Minimum reservation duration is 1 hour';
       }
 
-      if (durationHours > 8) {
-        newErrors.endTime = 'Maximum reservation duration is 8 hours';
+      if (durationHours > 2) {
+        newErrors.endTime = 'Maximum reservation duration is 2 hours';
       }
     }
 
@@ -359,7 +359,7 @@ export const ReservationForm = () => {
                     <li>Maximum 5 active reservations per patron</li>
                     <li>Reservations can be made up to 30 days in advance</li>
                     <li>Minimum reservation duration: 1 hour</li>
-                    <li>Maximum reservation duration: 8 hours</li>
+                    <li>Maximum reservation duration: 2 hours</li>
                     <li>No overlapping reservations for the same resource</li>
                   </ul>
                 </Alert>

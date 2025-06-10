@@ -33,3 +33,15 @@ reservationId required,
 user required
 }
 }
+application {
+config {
+baseName onlineLibrary,
+applicationType monolith,
+authenticationType jwt,
+prodDatabaseType postgresql,
+devDatabaseType h2disk,
+clientFramework react,
+skipUserManagement false,
+testFrameworks [cypress]
+}
+}

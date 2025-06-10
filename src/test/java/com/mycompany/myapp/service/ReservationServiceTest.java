@@ -1,14 +1,20 @@
 package com.mycompany.myapp.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
+import com.mycompany.myapp.domain.enumeration.ResourceType;
 import com.mycompany.myapp.repository.ReservationRepository;
 import com.mycompany.myapp.service.dto.ReservationDTO;
+import com.mycompany.myapp.service.dto.ResourceDTO;
 import com.mycompany.myapp.service.dto.UserDTO;
 import com.mycompany.myapp.service.mapper.ReservationMapper;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -49,5 +55,37 @@ class ReservationServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reservationService.save(reservationDTO));
 
         assertThat(exception.getMessage()).contains("Maximum reservation limit of 5 active reservations reached");
+    }
+
+    @Test
+    void testMeetingRoomTimeLimitValidation() {
+        // Test that meeting room 2-hour limit is enforced
+        UserDTO user = new UserDTO();
+        user.setId(1L);
+
+        ResourceDTO meetingRoom = new ResourceDTO();
+        meetingRoom.setId(1L);
+        meetingRoom.setResourceType(ResourceType.MEETING_ROOM);
+
+        Instant now = Instant.now();
+        Instant startTime = now.plus(2, ChronoUnit.HOURS);
+        Instant endTime = now.plus(5, ChronoUnit.HOURS); // 3 hours - should fail
+
+        ReservationDTO reservation = new ReservationDTO();
+        reservation.setUser(user);
+        reservation.setResource(meetingRoom);
+        reservation.setStartTime(startTime);
+        reservation.setEndTime(endTime);
+        reservation.setReservationDate(startTime);
+        reservation.setReservationId("TEST-123");
+
+        // Mock only the services that will be called before the validation fails
+        when(dateTimeService.getCurrentInstant()).thenReturn(now);
+        when(dateTimeService.getCurrentDate()).thenReturn(now.atZone(java.time.ZoneOffset.UTC).toLocalDate());
+
+        // This should throw an exception because 3 hours > 2 hours limit
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reservationService.save(reservation));
+
+        assertTrue(exception.getMessage().contains("Meeting room cannot be reserved for more than 2 hours"));
     }
 }

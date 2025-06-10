@@ -75,12 +75,12 @@ Feature: Reservation Business Rules Validation
     Then the reservation should be rejected
     And the system should return error "Minimum reservation duration is 1 hour"
 
-  Scenario: Enforce maximum reservation duration (8 hours)
+  Scenario: Enforce maximum reservation duration (2 hours)
     Given today is "2025-01-15"
     And a patron "iris@example.com" exists
-    When the patron attempts to reserve "Meeting Room A" from "2025-02-10 09:00" to "2025-02-10 18:00"
+    When the patron attempts to reserve "Meeting Room A" from "2025-02-10 09:00" to "2025-02-10 12:00"
     Then the reservation should be rejected
-    And the system should return error "Maximum reservation duration is 8 hours"
+    And the system should return error "Maximum reservation duration is 2 hours"
 
   Scenario: Generate unique reservation IDs
     Given today is "2025-01-15"

@@ -70,6 +70,20 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         @Param("endTime") Instant endTime
     );
 
+    /**
+     * Find meeting room reservations for a user within a 24-hour period
+     */
+    @Query(
+        "SELECT r FROM Reservation r JOIN r.resource res WHERE r.user.id = :userId AND " +
+        "res.resourceType = 'MEETING_ROOM' AND " +
+        "r.startTime < :periodEnd AND r.endTime > :periodStart"
+    )
+    List<Reservation> findMeetingRoomReservationsForUserInPeriod(
+        @Param("userId") Long userId,
+        @Param("periodStart") Instant periodStart,
+        @Param("periodEnd") Instant periodEnd
+    );
+
     default Optional<Reservation> findOneWithEagerRelationships(Long id) {
         return this.findOneWithToOneRelationships(id);
     }
