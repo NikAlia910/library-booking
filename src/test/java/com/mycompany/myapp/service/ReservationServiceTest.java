@@ -45,7 +45,7 @@ class ReservationServiceTest {
         ReservationDTO reservationDTO = new ReservationDTO();
         reservationDTO.setUser(userDTO);
         reservationDTO.setStartTime(Instant.now().plusSeconds(7200)); // 2 hours from now
-        reservationDTO.setEndTime(Instant.now().plusSeconds(10800)); // 3 hours from now
+        reservationDTO.setEndTime(Instant.now().plusSeconds(10800)); // 3 hours from now (1 hour duration)
 
         Instant currentTime = Instant.now();
         when(dateTimeService.getCurrentInstant()).thenReturn(currentTime);
@@ -69,7 +69,7 @@ class ReservationServiceTest {
 
         Instant now = Instant.now();
         Instant startTime = now.plus(2, ChronoUnit.HOURS);
-        Instant endTime = now.plus(5, ChronoUnit.HOURS); // 3 hours - should fail
+        Instant endTime = now.plus(5, ChronoUnit.HOURS); // 3 hours total duration - should fail
 
         ReservationDTO reservation = new ReservationDTO();
         reservation.setUser(user);
@@ -79,13 +79,11 @@ class ReservationServiceTest {
         reservation.setReservationDate(startTime);
         reservation.setReservationId("TEST-123");
 
-        // Mock only the services that will be called before the validation fails
-        when(dateTimeService.getCurrentInstant()).thenReturn(now);
-        when(dateTimeService.getCurrentDate()).thenReturn(now.atZone(java.time.ZoneOffset.UTC).toLocalDate());
+        // The validation will fail early due to duration constraint, so we don't need extensive mocking
 
         // This should throw an exception because 3 hours > 2 hours limit
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> reservationService.save(reservation));
 
-        assertTrue(exception.getMessage().contains("Meeting room cannot be reserved for more than 2 hours"));
+        assertTrue(exception.getMessage().contains("Maximum reservation duration is 2 hours"));
     }
 }
