@@ -22,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service Implementation for managing {@link com.mycompany.myapp.domain.Reservation}.
  */
+/**
+ * Service Implementation for managing {@link com.mycompany.myapp.domain.Reservation}.
+ */
 @Service
 @Transactional
 public class ReservationService {
