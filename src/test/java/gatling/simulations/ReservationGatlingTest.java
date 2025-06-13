@@ -55,16 +55,29 @@ public class ReservationGatlingTest extends Simulation {
         )
         .exitHereIfFailed()
         .pause(2)
-        .exec(http("Authenticated request").get("/api/account").headers(headersHttpAuthenticated).check(status().is(200)))
+        .exec(
+            http("Authenticated request")
+                .get("/api/account")
+                .header("Accept", "application/json")
+                .header("Authorization", "${access_token}")
+                .check(status().is(200))
+        )
         .pause(10)
         .repeat(2)
         .on(
-            exec(http("Get all reservations").get("/api/reservations").headers(headersHttpAuthenticated).check(status().is(200)))
+            exec(
+                http("Get all reservations")
+                    .get("/api/reservations")
+                    .header("Accept", "application/json")
+                    .header("Authorization", "${access_token}")
+                    .check(status().is(200))
+            )
                 .pause(Duration.ofSeconds(10), Duration.ofSeconds(20))
                 .exec(
                     http("Create new reservation")
                         .post("/api/reservations")
-                        .headers(headersHttpAuthenticated)
+                        .header("Accept", "application/json")
+                        .header("Authorization", "${access_token}")
                         .body(
                             StringBody(
                                 "{" +
@@ -92,8 +105,20 @@ public class ReservationGatlingTest extends Simulation {
                 .exitHereIfFailed()
                 .pause(10)
                 .repeat(5)
-                .on(exec(http("Get created reservation").get("${new_reservation_url}").headers(headersHttpAuthenticated)).pause(10))
-                .exec(http("Delete created reservation").delete("${new_reservation_url}").headers(headersHttpAuthenticated))
+                .on(
+                    exec(
+                        http("Get created reservation")
+                            .get("${new_reservation_url}")
+                            .header("Accept", "application/json")
+                            .header("Authorization", "${access_token}")
+                    ).pause(10)
+                )
+                .exec(
+                    http("Delete created reservation")
+                        .delete("${new_reservation_url}")
+                        .header("Accept", "application/json")
+                        .header("Authorization", "${access_token}")
+                )
                 .pause(10)
         );
 
