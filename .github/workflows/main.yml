@@ -25,7 +25,7 @@ jobs:
       - name: Start backend server
         run: |
           nohup ./mvnw -Dskip.installnodenpm -Dskip.npm -ntp --batch-mode spring-boot:run &
-          sleep 60 # Wait for the server to start
+          npx wait-on http://localhost:8080/management/health
       - name: Run backend test
         run: |
           chmod +x mvnw
