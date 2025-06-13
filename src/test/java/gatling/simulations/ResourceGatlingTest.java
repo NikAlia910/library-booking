@@ -51,7 +51,7 @@ public class ResourceGatlingTest extends Simulation {
                 .headers(headersHttpAuthentication)
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
-                .check(io.gatling.javaapi.http.HttpDsl.body().jsonPath("$.id_token").saveAs("access_token"))
+                .check(io.gatling.javaapi.http.HttpDsl.jsonPath("$.id_token").saveAs("access_token"))
         )
         .exitHereIfFailed()
         .pause(2)
