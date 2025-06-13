@@ -4,6 +4,7 @@ import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
+import static io.gatling.javaapi.http.HttpChecks.jsonPath;
 import static io.gatling.javaapi.http.HttpDsl.header;
 import static io.gatling.javaapi.http.HttpDsl.headerRegex;
 import static io.gatling.javaapi.http.HttpDsl.http;
@@ -51,7 +52,7 @@ public class ResourceGatlingTest extends Simulation {
                 .headers(headersHttpAuthentication)
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
-                .check(io.gatling.javaapi.http.HttpDsl.jsonPath("$.id_token").saveAs("access_token"))
+                .check(jsonPath("$.id_token").saveAs("access_token"))
         )
         .exitHereIfFailed()
         .pause(2)
