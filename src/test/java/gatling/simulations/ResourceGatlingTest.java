@@ -7,6 +7,7 @@ import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.header;
 import static io.gatling.javaapi.http.HttpDsl.headerRegex;
 import static io.gatling.javaapi.http.HttpDsl.http;
+import static io.gatling.javaapi.http.HttpDsl.jsonPath;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.ChainBuilder;
@@ -51,7 +52,7 @@ public class ResourceGatlingTest extends Simulation {
                 .headers(headersHttpAuthentication)
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
-                .check(header("Authorization").saveAs("access_token"))
+                .check(jsonPath("$.id_token").saveAs("access_token"))
         )
         .exitHereIfFailed()
         .pause(2)
@@ -59,7 +60,7 @@ public class ResourceGatlingTest extends Simulation {
             http("Authenticated request")
                 .get("/api/account")
                 .header("Accept", "application/json")
-                .header("Authorization", "${access_token}")
+                .header("Authorization", "Bearer ${access_token}")
                 .check(status().is(200))
         )
         .pause(10)
@@ -69,7 +70,7 @@ public class ResourceGatlingTest extends Simulation {
                 http("Get all resources")
                     .get("/api/resources")
                     .header("Accept", "application/json")
-                    .header("Authorization", "${access_token}")
+                    .header("Authorization", "Bearer ${access_token}")
                     .check(status().is(200))
             )
                 .pause(Duration.ofSeconds(10), Duration.ofSeconds(20))
@@ -77,7 +78,7 @@ public class ResourceGatlingTest extends Simulation {
                     http("Create new resource")
                         .post("/api/resources")
                         .header("Accept", "application/json")
-                        .header("Authorization", "${access_token}")
+                        .header("Authorization", "Bearer ${access_token}")
                         .body(
                             StringBody(
                                 "{" +
@@ -100,14 +101,14 @@ public class ResourceGatlingTest extends Simulation {
                         http("Get created resource")
                             .get("${new_resource_url}")
                             .header("Accept", "application/json")
-                            .header("Authorization", "${access_token}")
+                            .header("Authorization", "Bearer ${access_token}")
                     ).pause(10)
                 )
                 .exec(
                     http("Delete created resource")
                         .delete("${new_resource_url}")
                         .header("Accept", "application/json")
-                        .header("Authorization", "${access_token}")
+                        .header("Authorization", "Bearer ${access_token}")
                 )
                 .pause(10)
         );
