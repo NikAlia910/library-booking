@@ -22,10 +22,15 @@ jobs:
           java-version: 17
       - name: Install Node.js packages
         run: npm install
+      - name: Start backend server
+        run: |
+          nohup ./mvnw -Dskip.installnodenpm -Dskip.npm -ntp --batch-mode spring-boot:run &
+          sleep 60 # Wait for the server to start
       - name: Run backend test
         run: |
           chmod +x mvnw
           npm run ci:backend:test
+
       - name: Run performance tests
         run: npm run ci:performance:test
       - name: Upload Gatling Report
@@ -34,6 +39,7 @@ jobs:
           name: gatling-report
           path: target/gatling/**
         if: always()
+
       - name: Run frontend test
         run: npm run ci:frontend:test
       - name: Package application
