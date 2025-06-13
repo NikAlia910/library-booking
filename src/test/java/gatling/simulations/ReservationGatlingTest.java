@@ -40,7 +40,7 @@ public class ReservationGatlingTest extends Simulation {
 
     Map<String, String> headersHttpAuthentication = Map.of("Content-Type", "application/json", "Accept", "application/json");
 
-    Map<String, String> headersHttpAuthenticated = Map.of("Accept", "application/json", "Authorization", "${access_token}");
+    Map<String, String> headersHttpAuthenticated = Map.of("Accept", "application/json", "Authorization", "Bearer ${access_token}");
 
     ChainBuilder scn = exec(http("First unauthenticated request").get("/api/account").headers(headersHttp).check(status().is(401)))
         .exitHereIfFailed()
@@ -51,7 +51,7 @@ public class ReservationGatlingTest extends Simulation {
                 .headers(headersHttpAuthentication)
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
-                .check(header("Authorization").saveAs("access_token"))
+                .check(jsonPath("$.id_token").saveAs("access_token"))
         )
         .exitHereIfFailed()
         .pause(2)
