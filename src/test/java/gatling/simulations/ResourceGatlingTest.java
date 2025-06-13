@@ -55,16 +55,29 @@ public class ResourceGatlingTest extends Simulation {
         )
         .exitHereIfFailed()
         .pause(2)
-        .exec(http("Authenticated request").get("/api/account").headers(headersHttpAuthenticated).check(status().is(200)))
+        .exec(
+            http("Authenticated request")
+                .get("/api/account")
+                .header("Accept", "application/json")
+                .header("Authorization", "${access_token}")
+                .check(status().is(200))
+        )
         .pause(10)
         .repeat(2)
         .on(
-            exec(http("Get all resources").get("/api/resources").headers(headersHttpAuthenticated).check(status().is(200)))
+            exec(
+                http("Get all resources")
+                    .get("/api/resources")
+                    .header("Accept", "application/json")
+                    .header("Authorization", "${access_token}")
+                    .check(status().is(200))
+            )
                 .pause(Duration.ofSeconds(10), Duration.ofSeconds(20))
                 .exec(
                     http("Create new resource")
                         .post("/api/resources")
-                        .headers(headersHttpAuthenticated)
+                        .header("Accept", "application/json")
+                        .header("Authorization", "${access_token}")
                         .body(
                             StringBody(
                                 "{" +
@@ -82,8 +95,20 @@ public class ResourceGatlingTest extends Simulation {
                 .exitHereIfFailed()
                 .pause(10)
                 .repeat(5)
-                .on(exec(http("Get created resource").get("${new_resource_url}").headers(headersHttpAuthenticated)).pause(10))
-                .exec(http("Delete created resource").delete("${new_resource_url}").headers(headersHttpAuthenticated))
+                .on(
+                    exec(
+                        http("Get created resource")
+                            .get("${new_resource_url}")
+                            .header("Accept", "application/json")
+                            .header("Authorization", "${access_token}")
+                    ).pause(10)
+                )
+                .exec(
+                    http("Delete created resource")
+                        .delete("${new_resource_url}")
+                        .header("Accept", "application/json")
+                        .header("Authorization", "${access_token}")
+                )
                 .pause(10)
         );
 

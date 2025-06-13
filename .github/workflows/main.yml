@@ -41,6 +41,9 @@ jobs:
           name: gatling-report
           path: target/gatling/**
         if: always()
+      - name: Stop backend server
+        run: |
+          pkill -f 'spring-boot:run' || true
 
       - name: Run frontend test
         run: npm run ci:frontend:test
