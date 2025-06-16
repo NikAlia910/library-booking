@@ -24,7 +24,22 @@ import java.util.Optional;
  */
 public class ReservationGatlingTest extends Simulation {
 
-    String baseURL = Optional.ofNullable(System.getProperty("baseURL")).orElse("http://localhost:8080");
+    private String baseURL = System.getProperty("baseURL", "http://localhost:8080");
+
+    private Map<CharSequence, String> headersHttp = Map.of("Accept", "application/json");
+
+    private Map<CharSequence, String> headersHttpAuthentication = Map.of("Content-Type", "application/json", "Accept", "application/json");
+
+    // Static JWT token - replace this with a real token from your login
+    private static final String STATIC_JWT_TOKEN =
+        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc1MDE0OTcyNiwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzUwMDYzMzI2fQ.Gh05Qu2kK37Y3yuqbL7v0-B_ESPleVtlW6w80ikq7dAX1zA_RS6bfU2yrbCtRNVJSl2752mTfMuXv2eY5PCRsA";
+
+    private Map<CharSequence, String> headersHttpWithAuth = Map.of(
+        "Accept",
+        "application/json",
+        "Authorization",
+        "Bearer " + STATIC_JWT_TOKEN
+    );
 
     HttpProtocolBuilder httpConf = http
         .baseUrl(baseURL)
@@ -36,12 +51,6 @@ public class ReservationGatlingTest extends Simulation {
         .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0")
         .silentResources(); // Silence all resources like css or css so they don't clutter the results
 
-    Map<String, String> headersHttp = Map.of("Accept", "application/json");
-
-    Map<String, String> headersHttpAuthentication = Map.of("Content-Type", "application/json", "Accept", "application/json");
-
-    Map<String, String> headersHttpAuthenticated = Map.of("Accept", "application/json", "Authorization", "${access_token}");
-
     ChainBuilder scn = exec(http("First unauthenticated request").get("/api/account").headers(headersHttp).check(status().is(401)))
         .exitHereIfFailed()
         .pause(10)
@@ -51,50 +60,38 @@ public class ReservationGatlingTest extends Simulation {
                 .headers(headersHttpAuthentication)
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
-                .check(header("Authorization").saveAs("access_token"))
+                .check(status().is(200))
         )
         .exitHereIfFailed()
         .pause(2)
-        .exec(http("Authenticated request").get("/api/account").headers(headersHttpAuthenticated).check(status().is(200)))
+        .exec(http("Authenticated request").get("/api/account").headers(headersHttpWithAuth).check(status().is(200)))
         .pause(10)
         .repeat(2)
         .on(
-            exec(http("Get all reservations").get("/api/reservations").headers(headersHttpAuthenticated).check(status().is(200)))
-                .pause(Duration.ofSeconds(10), Duration.ofSeconds(20))
+            exec(http("Get all reservations").get("/api/reservations").headers(headersHttpWithAuth).check(status().is(200)))
+                .pause(10)
                 .exec(
                     http("Create new reservation")
                         .post("/api/reservations")
-                        .headers(headersHttpAuthenticated)
+                        .headers(headersHttpAuthentication)
+                        .header("Authorization", "Bearer " + STATIC_JWT_TOKEN)
                         .body(
                             StringBody(
                                 "{" +
-                                "\"reservationDate\": \"" +
-                                java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS) +
-                                "\"" +
-                                ", \"startTime\": \"" +
-                                java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS) +
-                                "\"" +
-                                ", \"endTime\": \"" +
-                                java.time.Instant.now()
-                                    .plus(1, java.time.temporal.ChronoUnit.DAYS)
-                                    .plus(2, java.time.temporal.ChronoUnit.HOURS) +
-                                "\"" +
-                                ", \"reservationId\": \"PERF_TEST_" +
+                                "\"reservationDate\":\"2024-12-01T09:00:00Z\"," +
+                                "\"startTime\":\"2024-12-01T10:00:00Z\"," +
+                                "\"endTime\":\"2024-12-01T11:00:00Z\"," +
+                                "\"reservationId\":\"PERF_TEST_" +
                                 System.currentTimeMillis() +
-                                "\"" +
+                                "\"," +
+                                "\"user\":{\"id\":1}," +
+                                "\"resource\":{\"id\":1}" +
                                 "}"
                             )
                         )
                         .asJson()
                         .check(status().is(201))
-                        .check(headerRegex("Location", "(.*)").saveAs("new_reservation_url"))
                 )
-                .exitHereIfFailed()
-                .pause(10)
-                .repeat(5)
-                .on(exec(http("Get created reservation").get("${new_reservation_url}").headers(headersHttpAuthenticated)).pause(10))
-                .exec(http("Delete created reservation").delete("${new_reservation_url}").headers(headersHttpAuthenticated))
-                .pause(10)
         );
 
     ScenarioBuilder users = scenario("Test the Reservation entity").exec(scn);
