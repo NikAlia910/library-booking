@@ -4,7 +4,7 @@ import { Button, Col, Row } from 'reactstrap';
 import { TextFormat } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { APP_DATE_FORMAT } from 'app/config/constants';
+import { APP_DATE_FORMAT, APP_DATE_ONLY_FORMAT } from 'app/config/constants';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 
 import { getEntity } from './reservation.reducer';
@@ -33,7 +33,7 @@ export const ReservationDetail = () => {
           </dt>
           <dd>
             {reservationEntity.reservationDate ? (
-              <TextFormat value={reservationEntity.reservationDate} type="date" format={APP_DATE_FORMAT} />
+              <TextFormat value={reservationEntity.reservationDate} type="date" format={APP_DATE_ONLY_FORMAT} />
             ) : null}
           </dd>
           <dt>

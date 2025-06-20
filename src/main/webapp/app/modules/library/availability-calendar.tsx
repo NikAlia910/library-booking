@@ -18,9 +18,11 @@ import {
 } from 'reactstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faChevronLeft, faChevronRight, faClock, faUser, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { TextFormat } from 'react-jhipster';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
 import { getEntities as getResources } from 'app/entities/resource/resource.reducer';
 import { getEntities as getReservations } from 'app/entities/reservation/reservation.reducer';
+import { APP_DATE_FORMAT, APP_TIME_FORMAT, APP_DATE_ONLY_FORMAT } from 'app/config/constants';
 
 interface CalendarEvent {
   id: string;
@@ -337,7 +339,9 @@ export const AvailabilityCalendar = () => {
               </div>
               <div className="mb-2">
                 <FontAwesomeIcon icon={faClock} className="me-2" />
-                <strong>Time:</strong> {selectedEvent.start.toLocaleTimeString()} - {selectedEvent.end.toLocaleTimeString()}
+                <strong>Time:</strong> <TextFormat value={selectedEvent.start} type="date" format={APP_DATE_FORMAT} />
+                {' - '}
+                <TextFormat value={selectedEvent.end} type="date" format={APP_DATE_FORMAT} />
               </div>
               <div className="mb-2">
                 <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />

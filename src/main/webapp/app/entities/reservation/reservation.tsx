@@ -4,7 +4,7 @@ import { Button, Table } from 'reactstrap';
 import { JhiItemCount, JhiPagination, TextFormat, getPaginationState } from 'react-jhipster';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSort, faSortDown, faSortUp } from '@fortawesome/free-solid-svg-icons';
-import { APP_DATE_FORMAT } from 'app/config/constants';
+import { APP_DATE_FORMAT, APP_DATE_ONLY_FORMAT } from 'app/config/constants';
 import { ASC, DESC, ITEMS_PER_PAGE, SORT } from 'app/shared/util/pagination.constants';
 import { overridePaginationStateWithQueryParams } from 'app/shared/util/entity-utils';
 import { useAppDispatch, useAppSelector } from 'app/config/store';
@@ -142,7 +142,7 @@ export const Reservation = () => {
                   </td>
                   <td>
                     {reservation.reservationDate ? (
-                      <TextFormat type="date" value={reservation.reservationDate} format={APP_DATE_FORMAT} />
+                      <TextFormat type="date" value={reservation.reservationDate} format={APP_DATE_ONLY_FORMAT} />
                     ) : null}
                   </td>
                   <td>
