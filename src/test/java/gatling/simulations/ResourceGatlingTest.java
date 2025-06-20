@@ -2,6 +2,7 @@ package gatling.simulations;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.header;
@@ -40,16 +41,7 @@ public class ResourceGatlingTest extends Simulation {
 
     private Map<CharSequence, String> headersHttpAuthentication = Map.of("Content-Type", "application/json", "Accept", "application/json");
 
-    // Static JWT token - replace this with a real token from your login
-    private static final String STATIC_JWT_TOKEN =
-        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc1MDE0OTcyNiwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzUwMDYzMzI2fQ.Gh05Qu2kK37Y3yuqbL7v0-B_ESPleVtlW6w80ikq7dAX1zA_RS6bfU2yrbCtRNVJSl2752mTfMuXv2eY5PCRsA";
-
-    private Map<CharSequence, String> headersHttpWithAuth = Map.of(
-        "Accept",
-        "application/json",
-        "Authorization",
-        "Bearer " + STATIC_JWT_TOKEN
-    );
+    private Map<CharSequence, String> headersHttpWithAuth = Map.of("Accept", "application/json", "Authorization", "Bearer ${jwtToken}");
 
     ChainBuilder scn = exec(http("First unauthenticated request").get("/api/account").headers(headersHttp).check(status().is(401)))
         .exitHereIfFailed()
@@ -61,20 +53,34 @@ public class ResourceGatlingTest extends Simulation {
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
                 .check(status().is(200))
+                .check(jsonPath("$.id_token").saveAs("jwtToken"))
         )
         .exitHereIfFailed()
         .pause(2)
-        .exec(http("Authenticated request").get("/api/account").headers(headersHttpWithAuth).check(status().is(200)))
+        .exec(
+            http("Authenticated request")
+                .get("/api/account")
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer ${jwtToken}")
+                .check(status().is(200))
+        )
         .pause(10)
         .repeat(2)
         .on(
-            exec(http("Get all resources").get("/api/resources").headers(headersHttpWithAuth).check(status().is(200)))
+            exec(
+                http("Get all resources")
+                    .get("/api/resources")
+                    .header("Accept", "application/json")
+                    .header("Authorization", "Bearer ${jwtToken}")
+                    .check(status().is(200))
+            )
                 .pause(10)
                 .exec(
                     http("Create new resource")
                         .post("/api/resources")
-                        .headers(headersHttpAuthentication)
-                        .header("Authorization", "Bearer " + STATIC_JWT_TOKEN)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .header("Authorization", "Bearer ${jwtToken}")
                         .body(
                             StringBody(
                                 "{" +

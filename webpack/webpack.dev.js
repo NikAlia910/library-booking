@@ -101,9 +101,12 @@ module.exports = async options =>
           reload: false,
         },
       ),
-      new WebpackNotifierPlugin({
-        title: 'Library Booking',
-        contentImage: path.join(__dirname, 'logo-jhipster.png'),
-      }),
+      // Disable webpack notifier on Windows to avoid ENAMETOOLONG error
+      process.platform !== 'win32'
+        ? new WebpackNotifierPlugin({
+            title: 'Library Booking',
+            contentImage: path.join(__dirname, 'logo-jhipster.png'),
+          })
+        : null,
     ].filter(Boolean),
   });

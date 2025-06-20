@@ -61,10 +61,16 @@ public class ReservationResource {
         if (reservationDTO.getId() != null) {
             throw new BadRequestAlertException("A new reservation cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        reservationDTO = reservationService.save(reservationDTO);
-        return ResponseEntity.created(new URI("/api/reservations/" + reservationDTO.getId()))
-            .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, reservationDTO.getId().toString()))
-            .body(reservationDTO);
+
+        try {
+            reservationDTO = reservationService.save(reservationDTO);
+            return ResponseEntity.created(new URI("/api/reservations/" + reservationDTO.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, reservationDTO.getId().toString()))
+                .body(reservationDTO);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Business rule violation during reservation creation: {}", e.getMessage());
+            throw new BadRequestAlertException(e.getMessage(), ENTITY_NAME, "businessrule");
+        }
     }
 
     /**
@@ -94,10 +100,15 @@ public class ReservationResource {
             throw new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound");
         }
 
-        reservationDTO = reservationService.update(reservationDTO);
-        return ResponseEntity.ok()
-            .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservationDTO.getId().toString()))
-            .body(reservationDTO);
+        try {
+            reservationDTO = reservationService.update(reservationDTO);
+            return ResponseEntity.ok()
+                .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, reservationDTO.getId().toString()))
+                .body(reservationDTO);
+        } catch (IllegalArgumentException e) {
+            LOG.warn("Business rule violation during reservation update: {}", e.getMessage());
+            throw new BadRequestAlertException(e.getMessage(), ENTITY_NAME, "businessrule");
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ package gatling.simulations;
 
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.jsonPath;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.header;
@@ -30,16 +31,7 @@ public class ReservationGatlingTest extends Simulation {
 
     private Map<CharSequence, String> headersHttpAuthentication = Map.of("Content-Type", "application/json", "Accept", "application/json");
 
-    // Static JWT token - replace this with a real token from your login
-    private static final String STATIC_JWT_TOKEN =
-        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTc1MDE0OTcyNiwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzUwMDYzMzI2fQ.Gh05Qu2kK37Y3yuqbL7v0-B_ESPleVtlW6w80ikq7dAX1zA_RS6bfU2yrbCtRNVJSl2752mTfMuXv2eY5PCRsA";
-
-    private Map<CharSequence, String> headersHttpWithAuth = Map.of(
-        "Accept",
-        "application/json",
-        "Authorization",
-        "Bearer " + STATIC_JWT_TOKEN
-    );
+    private Map<CharSequence, String> headersHttpWithAuth = Map.of("Accept", "application/json", "Authorization", "Bearer ${jwtToken}");
 
     HttpProtocolBuilder httpConf = http
         .baseUrl(baseURL)
@@ -61,33 +53,59 @@ public class ReservationGatlingTest extends Simulation {
                 .body(StringBody("{\"username\":\"admin\", \"password\":\"admin\"}"))
                 .asJson()
                 .check(status().is(200))
+                .check(jsonPath("$.id_token").saveAs("jwtToken"))
         )
         .exitHereIfFailed()
         .pause(2)
-        .exec(http("Authenticated request").get("/api/account").headers(headersHttpWithAuth).check(status().is(200)))
+        .exec(
+            http("Authenticated request")
+                .get("/api/account")
+                .header("Accept", "application/json")
+                .header("Authorization", "Bearer ${jwtToken}")
+                .check(status().is(200))
+        )
         .pause(10)
         .repeat(2)
         .on(
-            exec(http("Get all reservations").get("/api/reservations").headers(headersHttpWithAuth).check(status().is(200)))
+            exec(
+                http("Get all reservations")
+                    .get("/api/reservations")
+                    .header("Accept", "application/json")
+                    .header("Authorization", "Bearer ${jwtToken}")
+                    .check(status().is(200))
+            )
                 .pause(10)
                 .exec(
                     http("Create new reservation")
                         .post("/api/reservations")
-                        .headers(headersHttpAuthentication)
-                        .header("Authorization", "Bearer " + STATIC_JWT_TOKEN)
+                        .header("Content-Type", "application/json")
+                        .header("Accept", "application/json")
+                        .header("Authorization", "Bearer ${jwtToken}")
                         .body(
-                            StringBody(
-                                "{" +
-                                "\"reservationDate\":\"2024-12-01T09:00:00Z\"," +
-                                "\"startTime\":\"2024-12-01T10:00:00Z\"," +
-                                "\"endTime\":\"2024-12-01T11:00:00Z\"," +
-                                "\"reservationId\":\"PERF_TEST_" +
-                                System.currentTimeMillis() +
-                                "\"," +
-                                "\"user\":{\"id\":1}," +
-                                "\"resource\":{\"id\":1}" +
-                                "}"
-                            )
+                            StringBody(session -> {
+                                long currentTime = System.currentTimeMillis();
+                                long futureTime = currentTime + (2 * 60 * 60 * 1000); // 2 hours from now
+                                long endTime = futureTime + (2 * 60 * 60 * 1000); // 4 hours from now
+
+                                return (
+                                    "{" +
+                                    "\"reservationDate\":\"" +
+                                    java.time.Instant.ofEpochMilli(futureTime).toString() +
+                                    "\"," +
+                                    "\"startTime\":\"" +
+                                    java.time.Instant.ofEpochMilli(futureTime).toString() +
+                                    "\"," +
+                                    "\"endTime\":\"" +
+                                    java.time.Instant.ofEpochMilli(endTime).toString() +
+                                    "\"," +
+                                    "\"reservationId\":\"PERF_TEST_" +
+                                    currentTime +
+                                    "\"," +
+                                    "\"user\":{\"id\":1,\"login\":\"admin\",\"firstName\":\"Administrator\",\"lastName\":\"Administrator\",\"email\":\"admin@localhost\",\"activated\":true,\"langKey\":\"en\"}," +
+                                    "\"resource\":{\"id\":1,\"title\":\"at eyeliner\",\"author\":\"impartial psst until\",\"keywords\":\"footrest\",\"resourceType\":\"BOOK\"}" +
+                                    "}"
+                                );
+                            })
                         )
                         .asJson()
                         .check(status().is(201))
